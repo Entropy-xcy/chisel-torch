@@ -2,29 +2,31 @@ package tensor
 
 import chisel3._
 
-
-abstract class CTorchType extends Bundle {
-  val getInstance: () => CTorchType
-
-  def +(that: CTorchType): CTorchType
-  def -(that: CTorchType): CTorchType
-  def *(that: CTorchType): CTorchType
-  def /(that: CTorchType): CTorchType
-
-  def sqrt(): CTorchType
-  def **(that: Int): CTorchType
+trait CTorchType[T <: Data] extends Bundle {
+  def +(that: T): T
 }
 
-class CTorchFloat(val exp_width: Int, val sig_width: Int) extends CTorchType {
+class CTorchFloat(val exp_width: Int, val sig_width: Int) extends CTorchType[CTorchFloat] {
   val getInstance = (() => new CTorchFloat(exp_width, sig_width))
   val sign        = Bool()
   val exponent    = UInt(exp_width.W)
   val significand = UInt(sig_width.W)
+
+  def +(that: CTorchFloat): CTorchFloat = {
+    new CTorchFloat(exp_width, sig_width)
+  }
 }
 
-class CTorchUInt(val uint_width: Int) extends CTorchType {
+class CTorchUInt(val uint_width: Int) extends CTorchType[CTorchUInt] {
   val getInstance = () => new CTorchUInt(uint_width)
   val data = UInt(uint_width.W)
+
+  def +(that: CTorchUInt): CTorchUInt = {
+    val result = Wire(new CTorchUInt(uint_width))
+    result.data := this.data + that.data
+    result
+  }
+
 }
 
 
