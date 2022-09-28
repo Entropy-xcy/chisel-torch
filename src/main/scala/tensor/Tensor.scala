@@ -3,25 +3,29 @@ package tensor
 import chisel3._
 import chisel3.stage.ChiselStage
 
-class Tensor(val shape: Seq[Int], val dtype_constructor: () => CTorchType[_]) extends Bundle {
-  def createData(shape: Seq[Int], dtype_constructor: () => CTorchType[_]): Data = {
-    val current_dim = shape.head
-    if (shape.length == 1) {
-      Vec(current_dim, dtype_constructor())
-    } else {
-      Vec(current_dim, createData(shape.drop(1), dtype_constructor))
-    }
+class Tensor(val shape: Seq[Int], val data: Vec[CTorchType[_ <: Data]]) extends Bundle {
+  def apply(indice: Int): Tensor = {
+    val newShape = shape.drop(1)
+    val newData = data.slice(indice * newShape.product, (indice + 1) * newShape.product)
+    new Tensor(newShape, VecInit(newData))
   }
-  val data = createData(shape, dtype_constructor)
-
-
 }
 
-class TensorTest extends RawModule {
-  val shape = Seq(2, 3, 4)
-  val tensor = Wire(new Tensor(shape, () => new CTorchFloat(8, 23)))
-}
+object Tensor {
+  private def createData(shape: Seq[Int], dtype_constructor: () => CTorchType[_ <: Data]): Vec[CTorchType[_ <: Data]] = {
+    val total_size = shape.product
+    Vec(total_size, dtype_constructor())
+  }
 
-object TensorTestMain extends App {
-  (new ChiselStage).emitVerilog(new TensorTest)
+  def empty(shape: Seq[Int], dtype_constructor: () => CTorchType[_ <: Data]): Tensor = {
+    val data = createData(shape, dtype_constructor)
+    new Tensor(shape, data)
+  }
+
+  def zeros(shape: Seq[Int], dtype_constructor: () => CTorchType[_ <: Data]): Data = {
+    val data = createData(shape, dtype_constructor)
+    val wired_data = Wire(new Tensor(shape, data))
+    wired_data.data.foreach(_ := 0.U.asTypeOf(wired_data.data.head))
+    wired_data
+  }
 }
