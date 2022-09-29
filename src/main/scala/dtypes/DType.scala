@@ -1,11 +1,13 @@
-package tensor
+package dtypes
 
 import Chisel.fromIntToWidth
-import chisel3.{Bundle, Wire}
 import chisel3.internal.firrtl.Width
+import chisel3.{Bundle, Wire}
 
 trait DType[T] extends Bundle {
     def +(that: T): T
+    def := (that: T): Unit
+    def :=(that: chisel3.UInt): Unit
 }
 
 class UInt(val int_width: Width) extends DType[UInt] {
@@ -13,6 +15,10 @@ class UInt(val int_width: Width) extends DType[UInt] {
 
     def :=(that: chisel3.UInt): Unit = {
         this.data := that
+    }
+
+    def :=(that: UInt): Unit = {
+        this.data := that.data
     }
 
     def +(that: UInt): UInt = {
@@ -38,6 +44,11 @@ class Float(val exp_width: Width, val sig_width: Width) extends DType[Float] {
         new_float
     }
 
+    def :=(that: Float): Unit = {
+        this.sign := that.sign
+        this.exp := that.exp
+        this.sig := that.sig
+    }
     def :=(that: chisel3.UInt): Unit = {
         val that_bundle = that.asTypeOf(new Float(exp_width, sig_width))
         this.sign := that_bundle.sign

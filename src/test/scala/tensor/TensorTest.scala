@@ -2,26 +2,20 @@ package tensor
 
 import chisel3._
 import chisel3.iotesters._
+import dtypes.{DType, NDSeq}
 import org.scalatest.{FlatSpec, Matchers}
 
 class TTensorTestModule extends Module {
-    val tensor_temp = Tensor.empty(Seq(2, 2), () => new Float(8.W, 8.W))
+    val tensor_temp = Tensor.empty(Seq(2, 2), () => new dtypes.UInt(8.W))
     val io = IO(new Bundle {
         val in = Input(tensor_temp.asVecType)
         val out = Output(tensor_temp.asVecType)
     })
 
-    val t2 = Tensor.Wire(Tensor.empty(Seq(2, 2), () => new Float(8.W, 8.W)))
-    val t1 = Tensor.Wire(Tensor.empty(Seq(2, 2), () => new Float(8.W, 8.W)))
-    t2.data(0) := 0.U
-    t2.data(1) := 1.U
-    t2.data(2) := 2.U
-    t2.data(3) := 3.U
-
-    t1.data(0) := 0.U
-    t1.data(1) := 1.U
-    t1.data(2) := 2.U
-    t1.data(3) := 3.U
+    val t2 = Tensor.Wire(Tensor.empty(Seq(2, 2), () => new dtypes.UInt(8.W)))
+    val t1 = Tensor.Wire(Tensor.empty(Seq(2, 2), () => new dtypes.UInt(8.W)))
+    t1 := 1.U
+    t2 := 3.U
 
     val t3 = t1 + t2
 
@@ -30,7 +24,12 @@ class TTensorTestModule extends Module {
 
 
 class TTensorPeekPokeTester(c: TTensorTestModule) extends PeekPokeTester(c) {
-    println("Hello")
+    def peekVecTensor[T <: DType[T]](base_tensor: Tensor[T], base_vec: Vec[T]): NDSeq[BigInt] = {
+        NDSeq(base_tensor.shape, peek(base_vec))
+    }
+
+    val tensor_out = peekVecTensor(c.tensor_temp, c.io.out)
+    println(tensor_out.toString)
 }
 
 class TensorSpec extends FlatSpec with Matchers {
