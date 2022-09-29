@@ -1,5 +1,0 @@
-package tensor
-
-class TypedTensor {
-
-}

@@ -1,110 +1,67 @@
 package tensor
 
 import chisel3._
-import chisel3.stage.ChiselStage
 
-//trait Tensor[T] {
-//    val shape: Seq[Int]
-//    val data: Seq[CTorchType[_ <: Data]]
-//    val size: Int = shape.product
-//    def apply(idx: Int): UInt
-//    def apply(idx: Seq[Int]): UInt
-//    def toVec: Vec[CTorchType[_ <: Data]]
-//    def fromVec(vec: Vec[CTorchType[_ <: Data]]): Tensor[T]
-//    def toChiselType: Vec[CTorchType[_ <: Data]]
-//}
-
-case class Tensor(shape: Seq[Int], data: Seq[CTorchType[_ <: Data]]) {
-    def apply(index: Int): Tensor = {
+case class TypedTensor[T <: CTorchType[_ <: Data]](shape: Seq[Int], data: Seq[T]) {
+    def apply(index: Int): TypedTensor[T] = {
         val new_shape = shape.drop(1)
         val new_data = data.slice(index * new_shape.product, (index + 1) * new_shape.product)
-        Tensor(new_shape, new_data)
+        TypedTensor(new_shape, new_data)
     }
 
-    def apply(indices: Int*): CTorchType[_ <: Data] = {
-        val index = indices.foldLeft(0)((acc, i) => acc * shape(1) + i)
-        data(index)
-    }
-
-    def toVec: Vec[CTorchType[_ <: Data]] = {
-        VecInit(data)
-    }
-
-    def fromVec(vec: Vec[CTorchType[_ <: Data]]): Tensor = {
-        Tensor(shape, vec)
-    }
-
-    def toChiselType: Vec[CTorchType[_ <: Data]]  = {
+    def toChiselType: Vec[T] = {
         val size = shape.product
         Vec(size, data.head)
     }
 
-    def := (that: Tensor): Unit = {
+    def toVec: Vec[T] = {
+        VecInit(data)
+    }
+
+    def fromVec(vec: Vec[T]): TypedTensor[T] = {
+        TypedTensor(shape, vec)
+    }
+
+    def := (that: TypedTensor[T]): Unit = {
         for (i <- data.indices) {
             data(i) := that.data(i)
         }
     }
 
-    def := (that: Vec[CTorchType[_ <: Data]]): Unit = {
+    def := (that: Vec[T]): Unit = {
         for (i <- data.indices) {
             data(i) := that(i)
         }
     }
 
-    // Broadcast assignment
-    def := (that: CTorchType[_ <: Data]): Unit = {
+    def := (that: T): Unit = {
         data.foreach(_ := that)
-    }
-
-    // Broadcast assignment
-    def := (that: UInt): Unit = {
-        data.foreach(_ := that)
-    }
-
-    // Does not allow broadcasting right now
-    def + (that: Tensor): Tensor = {
-        assert(shape == that.shape)
-        val new_data = data.zip(that.data).map( x => {
-            val this_data = x._1
-            val that_data = x._2
-            assert
-            // check if same type
-            ()
-        })
-
-        Tensor.empty(Seq(1), () => new CTorchUInt(32))
     }
 }
 
-object Tensor {
-    private def createData(shape: Seq[Int], dtype_constructor: () => CTorchType[_ <: Data]): Seq[CTorchType[_ <: Data]] = {
+object TypedTensor {
+    private def createData[T <: CTorchType[_ <: Data]](shape: Seq[Int], dtype_constructor: ()
+        => T): Seq[T] = {
         val total_size = shape.product
         Seq.fill(total_size)(dtype_constructor())
     }
 
-    def empty(shape: Seq[Int], dtype_constructor: () => CTorchType[_ <: Data]): Tensor = {
+    def empty[T <: CTorchType[_ <: Data]](shape: Seq[Int], dtype_constructor: () => T): TypedTensor[T] = {
         val data = createData(shape, dtype_constructor)
-        new Tensor(shape, data)
+        new TypedTensor[T](shape, data)
     }
-
-    def Wire(tensor: Tensor): Tensor = {
+    def Wire[T <: CTorchType[_ <: Data]](tensor: TypedTensor[T]): TypedTensor[T] = {
         val data = tensor.data.map(d => chisel3.Wire(d))
-        new Tensor(tensor.shape, data)
+        new TypedTensor(tensor.shape, data)
     }
 
-    def Reg(tensor: Tensor): Tensor = {
+    def Reg[T <: CTorchType[_ <: Data]](tensor: TypedTensor[T]): TypedTensor[T] = {
         val data = tensor.data.map(d => chisel3.Reg(d))
-        new Tensor(tensor.shape, data)
+        new TypedTensor(tensor.shape, data)
     }
 
-    def fromVec(shape: Seq[Int], vec: Vec[CTorchType[_ <: Data]]): Tensor = {
-        Tensor(shape, vec)
-    }
-
-    def zeros(shape: Seq[Int], dtype_constructor: () => CTorchType[_ <: Data]): Tensor = {
-        val t = empty(shape, dtype_constructor)
-        val tt = Wire(t)
-        tt.data.foreach(_ := 0.U)
-        tt
+    def fromVec[T <: CTorchType[_ <: Data]](shape: Seq[Int], vec: Vec[T]): TypedTensor[T] = {
+        val data = vec.toSeq
+        new TypedTensor(shape, data)
     }
 }
