@@ -6,45 +6,45 @@ import chisel3.iotesters._
 import org.scalatest.{Matchers, FlatSpec}
 
 class TensorTestModule extends Module {
-  val io = IO(new Bundle {
-    val out = Output(Tensor.empty(Seq(2, 3), () => new CTorchUInt(8)))
-  })
+    val tensor_temp = Tensor.empty(Seq(2, 2), () => new CTorchUInt(8))
+    val io = IO(new Bundle {
+        val in = Input(tensor_temp.toChiselType)
+        val out = Output(tensor_temp.toChiselType)
+    })
+    val tensor_in = tensor_temp.fromVec(io.in)
 
-  val tensor = Tensor.zeros(Seq(2, 3), () => new CTorchUInt(8))
+    val tensor = Tensor.Wire(Tensor.empty(Seq(2, 2), () => new CTorchUInt(8)))
+    tensor := io.in
 
-  io.out := tensor
+    tensor(0, 0) := 0.U
+    tensor(0)(1) := 1.U
+    tensor(1)(0) := 2.U
+
+    io.out := tensor.toVec
 }
 
 
-class TensorPeekPokeTester(c: TensorTestModule) extends PeekPokeTester(c)  {
-  def peekPrintTensor(tensor: Tensor): Unit = {
-    def tensorToString(data: Seq[BigInt], shape: Seq[Int]): String = {
-      if (shape.length == 1) {
-        data.map(_.toString).mkString("[", ", ", "]")
-      } else {
-        val new_shape = shape.tail
-        val new_data = data.grouped(new_shape.product).toSeq
-        new_data.map(tensorToString(_, new_shape)).mkString("[", ",\n ", "]")
-      }
+class TensorPeekPokeTester(c: TensorTestModule) extends PeekPokeTester(c) {
+    def peekVecTensor(base_tensor: Tensor, vec: Vec[_]) : NDSeq[BigInt] = {
+
+        val raw_data = peek(vec)
+        val shape = base_tensor.shape
+
+        OneDSeq(raw_data)
     }
-    val data = peek(tensor.data)
-    val shape = tensor.shape
 
-    val str = tensorToString(data, shape)
-    print(str)
-    print("\n")
-    println()
-  }
-
-  peekPrintTensor(c.io.out)
+    val result = peek(c.io.out)
+    println(result.toString())
 }
 
 class TensorSpec extends FlatSpec with Matchers {
-  behavior of "Chisel Tensor"
+    behavior of "Chisel Tensor"
 
-  it should "Print Tensor with correct indexing" in {
-    chisel3.iotesters.Driver(() => new TensorTestModule) { c =>
-      new TensorPeekPokeTester(c)
-    } should be(true)
-  }
+    it should "Print Tensor with correct indexing" in {
+//        val args = Array("--backend-name", "verilator")
+        val args: Array[String] = Array()
+        chisel3.iotesters.Driver.execute(args=args, () => new TensorTestModule) { c =>
+            new TensorPeekPokeTester(c)
+        } should be(true)
+    }
 }
