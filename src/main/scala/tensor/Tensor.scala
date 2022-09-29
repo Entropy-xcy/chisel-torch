@@ -3,6 +3,17 @@ package tensor
 import chisel3._
 import chisel3.stage.ChiselStage
 
+//trait Tensor[T] {
+//    val shape: Seq[Int]
+//    val data: Seq[CTorchType[_ <: Data]]
+//    val size: Int = shape.product
+//    def apply(idx: Int): UInt
+//    def apply(idx: Seq[Int]): UInt
+//    def toVec: Vec[CTorchType[_ <: Data]]
+//    def fromVec(vec: Vec[CTorchType[_ <: Data]]): Tensor[T]
+//    def toChiselType: Vec[CTorchType[_ <: Data]]
+//}
+
 case class Tensor(shape: Seq[Int], data: Seq[CTorchType[_ <: Data]]) {
     def apply(index: Int): Tensor = {
         val new_shape = shape.drop(1)
@@ -40,14 +51,29 @@ case class Tensor(shape: Seq[Int], data: Seq[CTorchType[_ <: Data]]) {
         }
     }
 
+    // Broadcast assignment
     def := (that: CTorchType[_ <: Data]): Unit = {
         data.foreach(_ := that)
     }
 
+    // Broadcast assignment
     def := (that: UInt): Unit = {
         data.foreach(_ := that)
     }
 
+    // Does not allow broadcasting right now
+    def + (that: Tensor): Tensor = {
+        assert(shape == that.shape)
+        val new_data = data.zip(that.data).map( x => {
+            val this_data = x._1
+            val that_data = x._2
+            assert
+            // check if same type
+            ()
+        })
+
+        Tensor.empty(Seq(1), () => new CTorchUInt(32))
+    }
 }
 
 object Tensor {
