@@ -2,33 +2,33 @@ package tensor
 
 import chisel3._
 
-case class TypedTensor[T <: CTorchType[_ <: Data]](shape: Seq[Int], data: Seq[T]) {
-    def apply(index: Int): TypedTensor[T] = {
+class Tensor[T <: Data](val shape: Seq[Int], val data: Seq[CTorchType[T]]) {
+    def apply(index: Int): Tensor[T] = {
         val new_shape = shape.drop(1)
         val new_data = data.slice(index * new_shape.product, (index + 1) * new_shape.product)
-        TypedTensor(new_shape, new_data)
+        new Tensor(new_shape, new_data)
     }
 
-    def toChiselType: Vec[T] = {
+    def apply(indices: Int*): Tensor[T] = {
+        indices.foldLeft(this)((tensor, index) => tensor(index))
+    }
+
+    def toChiselType: Vec[CTorchType[T]] = {
         val size = shape.product
         Vec(size, data.head)
     }
 
-    def toVec: Vec[T] = {
+    def toVec: Vec[CTorchType[T]] = {
         VecInit(data)
     }
-
-    def fromVec(vec: Vec[T]): TypedTensor[T] = {
-        TypedTensor(shape, vec)
-    }
-
-    def := (that: TypedTensor[T]): Unit = {
+    def := (that: Tensor[T]): Unit = {
         for (i <- data.indices) {
             data(i) := that.data(i)
         }
     }
 
     def := (that: Vec[T]): Unit = {
+        assert(data.length == that.length)
         for (i <- data.indices) {
             data(i) := that(i)
         }
@@ -37,31 +37,37 @@ case class TypedTensor[T <: CTorchType[_ <: Data]](shape: Seq[Int], data: Seq[T]
     def := (that: T): Unit = {
         data.foreach(_ := that)
     }
+
+    def := (that: UInt): Unit = {
+        data.foreach(_ := that)
+    }
+
+    def +(that: Tensor[T]): Tensor[T] = {
+        val d0 = data.head
+        val d1 = that.data.head
+        new Tensor(shape, Seq.empty[CTorchType[T]])
+    }
+
 }
 
-object TypedTensor {
-    private def createData[T <: CTorchType[_ <: Data]](shape: Seq[Int], dtype_constructor: ()
+object Tensor {
+    private def createData[T <: Data](shape: Seq[Int], dtype_constructor: ()
         => T): Seq[T] = {
         val total_size = shape.product
         Seq.fill(total_size)(dtype_constructor())
     }
 
-    def empty[T <: CTorchType[_ <: Data]](shape: Seq[Int], dtype_constructor: () => T): TypedTensor[T] = {
+    def empty[T <: Data](shape: Seq[Int], dtype_constructor: () => CTorchType[T]): Tensor[T] = {
         val data = createData(shape, dtype_constructor)
-        new TypedTensor[T](shape, data)
+        new Tensor[T](shape, data)
     }
-    def Wire[T <: CTorchType[_ <: Data]](tensor: TypedTensor[T]): TypedTensor[T] = {
+    def Wire[T <: Data](tensor: Tensor[T]): Tensor[T] = {
         val data = tensor.data.map(d => chisel3.Wire(d))
-        new TypedTensor(tensor.shape, data)
+        new Tensor(tensor.shape, data)
     }
 
-    def Reg[T <: CTorchType[_ <: Data]](tensor: TypedTensor[T]): TypedTensor[T] = {
+    def Reg[T <: Data](tensor: Tensor[T]): Tensor[T] = {
         val data = tensor.data.map(d => chisel3.Reg(d))
-        new TypedTensor(tensor.shape, data)
-    }
-
-    def fromVec[T <: CTorchType[_ <: Data]](shape: Seq[Int], vec: Vec[T]): TypedTensor[T] = {
-        val data = vec.toSeq
-        new TypedTensor(shape, data)
+        new Tensor(tensor.shape, data)
     }
 }

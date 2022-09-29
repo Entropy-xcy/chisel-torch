@@ -2,7 +2,7 @@ package tensor
 
 import chisel3._
 
-trait CTorchType[T <: Data] extends Bundle {
+abstract class CTorchType[T <: Data] extends Bundle {
     def +(that: T): T
 
     def -(that: T): T
@@ -12,6 +12,7 @@ trait CTorchType[T <: Data] extends Bundle {
     def /(that: T): T
 
     def :=(that: T): Unit
+
     def :=(that: UInt): Unit
 }
 
