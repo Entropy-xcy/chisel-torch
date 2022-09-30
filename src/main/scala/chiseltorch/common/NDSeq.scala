@@ -1,4 +1,4 @@
-package tensor.dtypes
+package chiseltorch.common
 
 trait NDSeq[T] {
     def toString: String

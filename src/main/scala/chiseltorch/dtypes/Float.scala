@@ -1,35 +1,8 @@
-package tensor.dtypes
+package chiseltorch.dtypes
 
-import chisel3.internal.firrtl.Width
 import chisel3._
-import chisel3.util._
-import hardfloat._
-
-trait DType[T] extends Bundle {
-    def +(that: T): T
-    def := (that: T): Unit
-    def :=(that: chisel3.UInt): Unit
-}
-
-class UInt(val int_width: Width) extends DType[UInt] {
-    val data = chisel3.UInt(int_width)
-
-    def :=(that: chisel3.UInt): Unit = {
-        this.data := that
-    }
-
-    def :=(that: UInt): Unit = {
-        this.data := that.data
-    }
-
-    def +(that: UInt): UInt = {
-        val new_data = data + that.data
-        val max_width = int_width.max(that.int_width)
-        val new_uint = Wire(new UInt(max_width))
-        new_uint.data := new_data
-        new_uint
-    }
-}
+import hardfloat.{AddRawFN, rawFloatFromFN}
+import chiseltorch.dtypes.DType
 
 class Float(val exp_width: Int, val sig_width: Int) extends DType[Float] {
     val sign = chisel3.Bool()
@@ -73,11 +46,5 @@ class Float(val exp_width: Int, val sig_width: Int) extends DType[Float] {
         this.sign := that_bundle.sign
         this.exp := that_bundle.exp
         this.sig := that_bundle.sig
-    }
-}
-
-object UInt {
-    def apply(width: Width): UInt = {
-        new UInt(width)
     }
 }
