@@ -1,10 +1,10 @@
 package float
 
 import org.scalatest.{FlatSpec, Matchers}
-import tensor.{TensorFloatPeekPokeTest, TensorFloatTestModule, TensorIntAssignmentPeekPokeTest, TensorIntAssignmentTestModule}
 import chisel3._
 import chisel3.stage.ChiselStage
 import chisel3.util._
+import chiseltorch.tensor.{TensorFloatPeekPokeTest, TensorFloatTestModule, TensorIntAssignmentPeekPokeTest, TensorIntAssignmentTestModule}
 import hardfloat._
 
 class FloatSweepTestModule(expWidth: Int, sigWidth: Int) extends Module {

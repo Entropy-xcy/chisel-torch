@@ -7,7 +7,11 @@ import hardfloat._
 
 trait DType[T] extends Bundle {
     def +(that: T): T
+    def -(that: T): T
+    def *(that: T): T
+    def /(that: T): T
     def := (that: T): Unit
     def :=(that: chisel3.UInt): Unit
+    def zero: T
 }
 

@@ -1,11 +1,11 @@
-package tensor
+package chiseltorch.tensor
 
 import chisel3._
 import chisel3.iotesters._
-import org.scalatest.{FlatSpec, Matchers}
-import chiseltorch.dtypes.DType
 import chiseltorch._
 import chiseltorch.common.NDSeq
+import chiseltorch.dtypes.DType
+import org.scalatest.{FlatSpec, Matchers}
 
 class TensorIntAssignmentTestModule extends Module {
     val tensor_temp = Tensor.empty(Seq(2, 2, 2), () => new dtypes.UInt(8.W))

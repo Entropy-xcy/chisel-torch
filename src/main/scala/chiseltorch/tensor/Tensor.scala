@@ -1,4 +1,4 @@
-package chiseltorch
+package chiseltorch.tensor
 
 import chisel3.fromIntToLiteral
 import chiseltorch.dtypes.DType

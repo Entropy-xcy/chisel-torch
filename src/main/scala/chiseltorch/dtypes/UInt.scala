@@ -1,6 +1,6 @@
 package chiseltorch.dtypes
 
-import chisel3.Wire
+import chisel3.{Wire, fromIntToLiteral}
 import chisel3.internal.firrtl.Width
 
 class UInt(val int_width: Width) extends DType[UInt] {
@@ -15,11 +15,38 @@ class UInt(val int_width: Width) extends DType[UInt] {
     }
 
     def +(that: UInt): UInt = {
-        val new_data = data + that.data
         val max_width = int_width.max(that.int_width)
         val new_uint = Wire(new UInt(max_width))
-        new_uint.data := new_data
+        new_uint.data := data + that.data
         new_uint
+    }
+
+    def -(that: UInt): UInt = {
+        val max_width = int_width.max(that.int_width)
+        val new_uint = Wire(new UInt(max_width))
+        new_uint.data := data - that.data
+        new_uint
+    }
+
+    def *(that: UInt): UInt = {
+        val max_width = int_width.max(that.int_width)
+        val new_uint = Wire(new UInt(max_width))
+        new_uint.data := data * that.data
+        new_uint
+    }
+
+    def /(that: UInt): UInt = {
+        val max_width = int_width.max(that.int_width)
+        val new_uint = Wire(new UInt(max_width))
+        new_uint.data := data / that.data
+        new_uint
+    }
+
+    def zero: UInt = {
+        val zeroi = Wire(new UInt(int_width))
+        zeroi.data := 0.U
+
+        zeroi
     }
 }
 
