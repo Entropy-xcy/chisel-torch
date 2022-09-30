@@ -44,7 +44,8 @@ addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.fu
 // Provide a managed dependency on X if -DXVersion="" is supplied on the command line.
 val defaultVersions = Seq(
   "chisel-iotesters" -> "1.5.1",
-  "chiseltest" -> "0.3.1"
+  "chiseltest" -> "0.3.1",
+  "hardfloat" -> "1.2.4",
   )
 
 libraryDependencies ++= defaultVersions.map { case (dep, ver) =>

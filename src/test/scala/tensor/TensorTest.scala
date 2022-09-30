@@ -6,16 +6,20 @@ import dtypes.{DType, NDSeq}
 import org.scalatest.{FlatSpec, Matchers}
 
 class TTensorTestModule extends Module {
-    val tensor_temp = Tensor.empty(Seq(2, 2), () => new dtypes.UInt(8.W))
+    val tensor_temp = Tensor.empty(Seq(2, 2, 2), () => new dtypes.UInt(8.W))
     val io = IO(new Bundle {
         val in = Input(tensor_temp.asVecType)
         val out = Output(tensor_temp.asVecType)
     })
 
-    val t2 = Tensor.Wire(Tensor.empty(Seq(2, 2), () => new dtypes.UInt(8.W)))
-    val t1 = Tensor.Wire(Tensor.empty(Seq(2, 2), () => new dtypes.UInt(8.W)))
+    val t2 = Tensor.Wire(Tensor.empty(Seq(2, 2, 2), () => new dtypes.UInt(8.W)))
+    val t1 = Tensor.Wire(Tensor.empty(Seq(2, 2, 2), () => new dtypes.UInt(8.W)))
     t1 := 1.U
     t2 := 3.U
+
+    t1(0)(0)(0) := 2.U
+
+    t2(1, 1, 1) := 4.U
 
     val t3 = t1 + t2
 

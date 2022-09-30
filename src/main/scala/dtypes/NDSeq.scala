@@ -12,7 +12,7 @@ case class OneDSeq[T](seq: Seq[T]) extends NDSeq[T] {
 
 case class NDSeqSeq[T](seq: Seq[NDSeq[T]]) extends NDSeq[T] {
     override def toString = {
-        seq.mkString("[", ",\n ", "]")
+        seq.mkString("[\n", ",\n ", "\n]")
     }
 }
 
@@ -23,8 +23,8 @@ object NDSeq {
             shape.length match {
                 case 1 => OneDSeq(seq)
                 case _ =>
-                    val seq_split = seq.grouped(shape.head).toSeq
-                    val ndseqs = seq_split.map(helper(shape.tail, _))
+                    val seq_split = seq.grouped(seq.length / shape.head).toSeq
+                    val ndseqs: Seq[NDSeq[T]] = seq_split.map(helper(shape.tail, _)).toList
                     NDSeqSeq(ndseqs)
             }
         }

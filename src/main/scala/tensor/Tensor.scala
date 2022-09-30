@@ -6,7 +6,7 @@ import dtypes.DType
 class Tensor[T <: DType[T]](val shape: Seq[Int], val data: Seq[T]) {
     def apply(index: Int): Tensor[T] = {
         val new_shape = shape.drop(1)
-        val new_data_groups = data.grouped(shape.head).toSeq
+        val new_data_groups = data.grouped(data.length / shape.head).toSeq
         val new_data = new_data_groups(index)
         new Tensor(new_shape, new_data)
     }
