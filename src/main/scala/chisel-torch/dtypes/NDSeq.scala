@@ -1,4 +1,4 @@
-package dtypes
+package tensor.dtypes
 
 trait NDSeq[T] {
     def toString: String

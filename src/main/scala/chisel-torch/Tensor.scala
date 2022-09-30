@@ -1,7 +1,7 @@
 package tensor
 
 import chisel3.fromIntToLiteral
-import dtypes.DType
+import tensor.dtypes.DType
 
 class Tensor[T <: DType[T]](val shape: Seq[Int], val data: Seq[T]) {
     def apply(index: Int): Tensor[T] = {
@@ -72,5 +72,4 @@ object Tensor {
         new Tensor(tensor.shape, data)
     }
 }
-
 
