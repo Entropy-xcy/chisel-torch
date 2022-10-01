@@ -13,5 +13,6 @@ trait DType[T] extends Bundle {
     def := (that: T): Unit
     def :=(that: chisel3.UInt): Unit
     def zero: T
+//    def poke(pokle_val: Float)(implicit poke: T => Unit): Unit
 }
 

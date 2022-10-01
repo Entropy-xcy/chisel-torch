@@ -1,6 +1,6 @@
 package chiseltorch.dtypes
 
-import chisel3.{Wire, fromIntToLiteral}
+import chisel3.{Data, Wire, fromIntToLiteral}
 import chisel3.internal.firrtl.Width
 
 class UInt(val int_width: Width) extends DType[UInt] {
@@ -47,6 +47,9 @@ class UInt(val int_width: Width) extends DType[UInt] {
         zeroi.data := 0.U
 
         zeroi
+    }
+
+    def poke(pokle_val: Float)(implicit poke: Data => Unit) = {
     }
 }
 
