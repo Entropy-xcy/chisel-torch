@@ -38,7 +38,7 @@ object Ops {
     }
 
     // Convolution
-    def conv2d[T <: DType[T]](input: Tensor[T], weight: Tensor[T], stide: Int): Tensor[T] = {
+    def conv2d[T <: DType[T]](input: Tensor[T], weight: Tensor[T], stride: Int): Tensor[T] = {
         require(input.shape.length == 4, "Input must be 4D")
         require(weight.shape.length == 4, "Weight must be 4D")
         require(input.shape(1) == weight.shape(1), "Input and weight must have same number of channels")
@@ -47,8 +47,8 @@ object Ops {
         val (n, c, h, w) = (input.shape(0), input.shape(1), input.shape(2), input.shape(3))
         val (k, _, kh, kw) = (weight.shape(0), weight.shape(1), weight.shape(2), weight.shape(3))
 
-        val oh = (h - kh) / stide + 1
-        val ow = (w - kw) / stide + 1
+        val oh = (h - kh) / stride + 1
+        val ow = (w - kw) / stride + 1
 
         val new_data = 0 until n map { i => // i for batch
             0 until k map { j => // j for channel
@@ -57,7 +57,7 @@ object Ops {
                         val to_sum = 0 until c map { p =>
                             0 until kh map { q =>
                                 0 until kw map { r =>
-                                    input(i, p, l * stide + q, m * stide + r).data.head * weight(j, p, q, r).data.head
+                                    input(i, p, l * stride + q, m * stride + r).data.head * weight(j, p, q, r).data.head
                                 }
                             }
                         }

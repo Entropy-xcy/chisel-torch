@@ -25,7 +25,7 @@ class Tensor[T <: DType[T]](val shape: Seq[Int], val data: Seq[T]) {
 
     def asVecType: chisel3.Vec[T] = {
         val size = shape.product
-        chisel3.Vec(size, data.head)
+        chisel3.Vec(size, data.head.cloneType)
     }
 
     def :=(that: chisel3.Vec[T]): Unit = {

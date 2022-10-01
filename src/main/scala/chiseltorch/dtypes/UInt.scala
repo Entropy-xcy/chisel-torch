@@ -48,9 +48,6 @@ class UInt(val int_width: Width) extends DType[UInt] {
 
         zeroi
     }
-
-    def poke(pokle_val: Float)(implicit poke: Data => Unit) = {
-    }
 }
 
 
