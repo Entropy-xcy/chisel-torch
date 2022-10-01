@@ -2,6 +2,7 @@ package chiseltorch.dtypes
 
 import chisel3.{Data, Wire, fromIntToLiteral}
 import chisel3.internal.firrtl.Width
+import chisel3.experimental.BundleLiterals._
 
 class UInt(val int_width: Width) extends DType[UInt] {
     val data = chisel3.UInt(int_width)
@@ -47,6 +48,10 @@ class UInt(val int_width: Width) extends DType[UInt] {
         zeroi.data := 0.U
 
         zeroi
+    }
+
+    def LitVal(lit_val: scala.Float): UInt = {
+        new UInt(int_width).Lit(_.data -> lit_val.toInt.U)
     }
 }
 

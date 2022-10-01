@@ -1,6 +1,7 @@
 package chiseltorch.dtypes
 
 import chisel3._
+import chisel3.experimental.BundleLiterals.AddBundleLiteralConstructor
 import chisel3.util._
 import hardfloat.{AddRawFN, DivSqrtRawFN_small, MulRawFN, rawFloatFromFN}
 import chiseltorch.dtypes.DType
@@ -118,5 +119,9 @@ class Float(val exp_width: Int, val sig_width: Int) extends DType[Float] {
         this.sign := that_bits.head
         this.exp := VecInit(that_bits.slice(1, 1 + exp_width_no_sign - 1)).asUInt
         this.sig := VecInit(that_bits.slice(exp_width_no_sign, that_bits.length - 1)).asUInt
+    }
+
+    def LitVal(lit_val: scala.Float): Float = {
+        (new Float(exp_width, sig_width)).Lit(_.sign -> 0.U, _.exp -> 0.U, _.sig -> 0.U)
     }
 }

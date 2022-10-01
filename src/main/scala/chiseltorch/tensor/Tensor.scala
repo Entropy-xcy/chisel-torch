@@ -10,6 +10,7 @@ class Tensor[T <: DType[T]](val shape: Seq[Int], val data: Seq[T]) {
         val new_data = new_data_groups(index)
         new Tensor(new_shape, new_data)
     }
+
     def apply(index: Int*): Tensor[T] = {
         index.foldLeft(this)((t, i) => t(i))
     }
@@ -71,5 +72,10 @@ object Tensor {
         val data = tensor.data.map(d => chisel3.Wire(d))
         new Tensor(tensor.shape, data)
     }
-}
 
+    // Return a Literal Tensor
+    def Lit[T <: DType[T]](shape: Seq[Int], data: Seq[scala.Float], dtype_constructor: () => T): Tensor[T] = {
+        val data_lit = data.map(d => dtype_constructor().LitVal(d))
+        new Tensor(shape, data_lit)
+    }
+}
