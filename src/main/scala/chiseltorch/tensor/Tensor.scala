@@ -47,6 +47,11 @@ class Tensor[T <: DType[T]](val shape: Seq[Int], val data: Seq[T]) {
     def :=(that: chisel3.UInt): Unit = {
         data.foreach { d => d := that }
     }
+
+    def reshape(new_shape: Seq[Int]): Tensor[T] = {
+        assert(shape.product == new_shape.product)
+        new Tensor(new_shape, data)
+    }
 }
 
 object Tensor {

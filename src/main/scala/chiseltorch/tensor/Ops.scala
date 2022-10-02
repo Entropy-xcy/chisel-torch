@@ -1,5 +1,7 @@
 package chiseltorch.tensor
 
+import Chisel.Mux
+import chisel3.fromIntToLiteral
 import chiseltorch.dtypes.DType
 
 object Ops {
@@ -11,6 +13,11 @@ object Ops {
     def sum[T <: DType[T]](a: Seq[T]): T = {
         val sum_data = a.reduce((x, y) => x + y)
         sum_data
+    }
+
+    def relu[T <: DType[T]](a: Tensor[T]): Tensor[T] = {
+        val relu_data = a.data.map(x => Mux(x > x.zero, x, x.zero))
+        Tensor(a.shape, relu_data)
     }
 
     def max[T <: DType[T]](a: Tensor[T]): T = {
@@ -25,7 +32,6 @@ object Ops {
 
     // Matrix Multiplication
     def mm[T <: DType[T]](a: Tensor[T], b: Tensor[T]): Tensor[T] = {
-        require(a.shape == b.shape, "Shapes must be equal")
         require(a.shape.length == 2, "Matrix Multiplication only operates on 2D tensors")
         val m = a.shape.head
         val k = a.shape(1)
@@ -113,6 +119,4 @@ object Ops {
         val new_tensor = Tensor(new_shape, new_data.flatten.flatten.flatten)
         new_tensor
     }
-
-
 }
