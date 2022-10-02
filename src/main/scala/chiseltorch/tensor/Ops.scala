@@ -13,6 +13,16 @@ object Ops {
         sum_data
     }
 
+    def max[T <: DType[T]](a: Tensor[T]): T = {
+        val max_data = a.data.reduce((x, y) => chisel3.Mux(x > y, x, y))
+        max_data
+    }
+
+    def max[T <: DType[T]](a: Seq[T]): T = {
+        val max_data = a.reduce((x, y) => chisel3.Mux(x > y, x, y))
+        max_data
+    }
+
     // Matrix Multiplication
     def mm[T <: DType[T]](a: Tensor[T], b: Tensor[T]): Tensor[T] = {
         require(a.shape == b.shape, "Shapes must be equal")
@@ -42,7 +52,6 @@ object Ops {
         require(input.shape.length == 4, "Input must be 4D")
         require(weight.shape.length == 4, "Weight must be 4D")
         require(input.shape(1) == weight.shape(1), "Input and weight must have same number of channels")
-        require(weight.shape(0) == 1, "Weight must have only one filter")
 
         val (n, c, h, w) = (input.shape(0), input.shape(1), input.shape(2), input.shape(3))
         val (k, _, kh, kw) = (weight.shape(0), weight.shape(1), weight.shape(2), weight.shape(3))
@@ -72,4 +81,38 @@ object Ops {
         val new_tensor = Tensor(new_shape, new_data.flatten.flatten.flatten)
         new_tensor
     }
+
+    // Max Pooling
+    def max_pool2d[T <: DType[T]](input: Tensor[T], kernel_size: Tuple2[Int, Int], stride: Option[Int]): Tensor[T] = {
+        require(input.shape.length == 4, "Input must be 4D")
+
+        val (n, c, h, w) = (input.shape(0), input.shape(1), input.shape(2), input.shape(3))
+        val (kh, kw) = kernel_size
+        val s = stride.getOrElse(kh)
+
+        val oh = (h - kh) / s + 1
+        val ow = (w - kw) / s + 1
+
+        val new_data = 0 until n map { i => // i for batch
+            0 until c map { j => // j for channel
+                0 until oh map { l => // l for height
+                     0 until ow map { m => // m for width
+                        val to_max = 0 until kh map { q =>
+                            0 until kw map { r =>
+                                input(i, j, l * s + q, m * s + r).data.head
+                            }
+                        }
+                        val max = to_max.flatten
+                        Ops.max(max)
+                    }
+                }
+            }
+        }
+
+        val new_shape = Seq(n, c, oh, ow)
+        val new_tensor = Tensor(new_shape, new_data.flatten.flatten.flatten)
+        new_tensor
+    }
+
+
 }

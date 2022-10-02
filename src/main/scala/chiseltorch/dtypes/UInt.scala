@@ -43,6 +43,14 @@ class UInt(val int_width: Width) extends DType[UInt] {
         new_uint
     }
 
+    def >(that: UInt): chisel3.Bool = {
+        data > that.data
+    }
+
+    def <(that: UInt): chisel3.Bool = {
+        data < that.data
+    }
+
     def zero: UInt = {
         val zeroi = Wire(new UInt(int_width))
         zeroi.data := 0.U

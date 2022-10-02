@@ -12,6 +12,8 @@ trait DType[T] extends Bundle {
     def /(that: T): T
     def := (that: T): Unit
     def :=(that: chisel3.UInt): Unit
+    def > (that: T): Bool
+    def < (that: T): Bool
     def zero: T
     def LitVal(lit_val: scala.Float): T
 }

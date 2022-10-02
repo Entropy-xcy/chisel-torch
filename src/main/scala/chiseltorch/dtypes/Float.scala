@@ -6,6 +6,8 @@ import chisel3.util._
 import hardfloat.{AddRawFN, DivSqrtRawFN_small, MulRawFN, rawFloatFromFN}
 import chiseltorch.dtypes.DType
 
+import scala.annotation.showAsInfix
+
 class Float(val exp_width: Int, val sig_width: Int) extends DType[Float] {
     val sign = chisel3.Bool()
     val exp_width_no_sign = exp_width - 1
@@ -95,6 +97,16 @@ class Float(val exp_width: Int, val sig_width: Int) extends DType[Float] {
         new_float.sig := out_raw_float.sig(out_raw_float.expWidth + 1, out_raw_float.expWidth + 2 - sig_width + 1)
 
         new_float
+    }
+
+    def >(that: Float): Bool = {
+        // Dummy implementation
+        false.B
+    }
+
+    def <(that: Float): Bool = {
+        // Dummy implementation
+        false.B
     }
 
     def zero: Float = {
