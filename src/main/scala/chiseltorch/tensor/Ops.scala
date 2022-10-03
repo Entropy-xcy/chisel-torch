@@ -119,4 +119,9 @@ object Ops {
         val new_tensor = Tensor(new_shape, new_data.flatten.flatten.flatten)
         new_tensor
     }
+
+    def batch_norm[T <: DType[T]](input: Tensor[T], mean: T, variance: T, epsilon: T): Tensor[T] = {
+        val new_data = input.data.map(x => (x - mean) / (variance + epsilon))
+        Tensor(input.shape, new_data)
+    }
 }
