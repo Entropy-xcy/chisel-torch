@@ -5,7 +5,7 @@ import chisel3.stage.ChiselStage
 import chisel3.util._
 import chiseltorch.tensor.Tensor
 
-private class Conv2DOne(in_channels: Int, in_size: (Int, Int), kernel_size: Int, stride: Int) extends Module {
+private class Conv2DOne(in_channels: Int, in_size: (Int, Int), kernel_size: Int, stride: Int) extends chisel3.Module {
     // Print the build parameters
     val out_channels = 1
     val input_tensor = Tensor.Wire(Tensor.empty(Seq(1, in_channels, in_size._1, in_size._2), () => chiseltorch.dtypes.UInt(8.W)))
@@ -57,6 +57,16 @@ class Conv2D(in_channels: Int, out_channels: Int, kernel_size: Int, stride: Int)
     input_tensor := io.input
     conv1_input_weight := io.weight
     io.out := conv1_output.toVec
+
+    override def input: Data = io.input
+
+    override def output: Data = io.out
+
+    override def in_shape: Seq[Int] = in_size
+
+    override def out_shape: Seq[Int] = conv1_output.shape
+
+    override def param_input: Option[Data] = Some(io.weight)
 }
 
 // Chisel Stage Build This Module

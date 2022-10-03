@@ -5,7 +5,7 @@ import chisel3._
 import chisel3.stage.ChiselStage
 import chisel3.util._
 
-class Linear(input_dim: Int, output_dim: Int)(input_shape: Seq[Int]) extends chisel3.Module {
+class Linear(input_dim: Int, output_dim: Int)(input_shape: Seq[Int]) extends Module {
 
     require(input_shape.length == 2, "Linear input shape must be 2D")
     require(input_shape(1) == input_dim, "Linear input dim must be " + input_dim)
@@ -23,6 +23,16 @@ class Linear(input_dim: Int, output_dim: Int)(input_shape: Seq[Int]) extends chi
     input_tensor := io.input
     weight_tensor := io.weight
     io.out := output_tensor.toVec
+
+    override def input: Data = io.input
+
+    override def output: Data = io.out
+
+    override def in_shape: Seq[Int] = input_shape
+
+    override def out_shape: Seq[Int] = output_tensor.shape
+
+    override def param_input: Option[Data] = Some(io.weight)
 }
 
 

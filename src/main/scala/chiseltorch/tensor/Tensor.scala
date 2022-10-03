@@ -78,6 +78,11 @@ object Tensor {
         new Tensor(tensor.shape, data)
     }
 
+    def Reg[T <: DType[T]](tensor: Tensor[T]): Tensor[T] = {
+        val data = tensor.data.map(d => chisel3.Reg(d))
+        new Tensor(tensor.shape, data)
+    }
+
     // Return a Literal Tensor
     def Lit[T <: DType[T]](shape: Seq[Int], data: Seq[scala.Float], dtype_constructor: () => T): Tensor[T] = {
         val data_lit = data.map(d => dtype_constructor().LitVal(d))

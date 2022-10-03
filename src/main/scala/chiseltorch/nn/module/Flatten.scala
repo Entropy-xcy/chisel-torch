@@ -4,7 +4,9 @@ import chiseltorch.tensor.Tensor
 import chisel3._
 import chisel3.util._
 
-class Flatten()(input_shape: Seq[Int]) extends chisel3.Module {
+import scala.collection.Seq
+
+class Flatten()(input_shape: Seq[Int]) extends Module {
     val input_tensor = Tensor.Wire(Tensor.empty(input_shape, () => chiseltorch.dtypes.UInt(8.W)))
     val output_tensor = Tensor.Wire(Tensor.empty(Seq(1, input_shape.product), () => chiseltorch.dtypes.UInt(8.W)))
 
@@ -17,4 +19,14 @@ class Flatten()(input_shape: Seq[Int]) extends chisel3.Module {
 
     input_tensor := io.input
     io.out := output_tensor.toVec
+
+    override def input: Data = io.input
+
+    override def output: Data = io.out
+
+    override def in_shape: Seq[Int] = input_shape
+
+    override def out_shape: Seq[Int] = output_tensor.shape
+
+    override def param_input: Option[Data] = None
 }
