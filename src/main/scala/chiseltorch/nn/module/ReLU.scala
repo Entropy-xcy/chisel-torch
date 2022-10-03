@@ -28,3 +28,7 @@ class ReLU()(input_shape: Seq[Int]) extends Module {
 
     override def param_input: Option[Data] = None
 }
+
+object ReLU {
+    def apply()(input_shape: Seq[Int]): ReLU = Module(new ReLU()(input_shape))
+}

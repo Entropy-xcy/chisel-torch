@@ -69,6 +69,12 @@ class Conv2D(in_channels: Int, out_channels: Int, kernel_size: Int, stride: Int)
     override def param_input: Option[Data] = Some(io.weight)
 }
 
+object Conv2D {
+    def apply(in_channels: Int, out_channels: Int, kernel_size: Int, stride: Int)(in_size: Seq[Int]): Conv2D = {
+        Module(new Conv2D(in_channels, out_channels, kernel_size, stride)(in_size))
+    }
+}
+
 // Chisel Stage Build This Module
 object Conv2DBuild extends App {
     val t0 = System.nanoTime()

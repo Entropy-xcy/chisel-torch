@@ -35,6 +35,12 @@ class Linear(input_dim: Int, output_dim: Int)(input_shape: Seq[Int]) extends Mod
     override def param_input: Option[Data] = Some(io.weight)
 }
 
+object Linear {
+    def apply(input_dim: Int, output_dim: Int)(input_shape: Seq[Int]): Linear = {
+        Module(new Linear(input_dim, output_dim)(input_shape))
+    }
+}
+
 
 object LinearBuild extends App {
     val t0 = System.nanoTime()

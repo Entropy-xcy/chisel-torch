@@ -28,15 +28,21 @@ class BatchNorm2d(num_features: Int, mean: Double, variance: Double, epsilon: Do
     param_tensor := io.param
     io.out := output_tensor.toVec
 
-    override def input: Data = io.input
+    override def input = io.input
 
-    override def output: Data = io.out
+    override def output = io.out
 
     override def in_shape: Seq[Int] = input_shape
 
     override def out_shape: Seq[Int] = output_tensor.shape
 
     override def param_input: Option[Data] = None
+}
+
+object BatchNorm2d {
+    def apply(num_features: Int, mean: Double, variance: Double, epsilon: Double)(input_shape: Seq[Int]): BatchNorm2d = {
+        Module(new BatchNorm2d(num_features, mean, variance, epsilon)(input_shape))
+    }
 }
 
 object BatchNorm2dBuild extends App {

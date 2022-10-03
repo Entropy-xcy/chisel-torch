@@ -25,3 +25,7 @@ class Pipe()(input_shape: Seq[Int]) extends Module {
 
     override def param_input: Option[Data] = None
 }
+
+object Pipe {
+    def apply()(input_shape: Seq[Int]): Pipe = Module(new Pipe()(input_shape))
+}

@@ -30,3 +30,7 @@ class Flatten()(input_shape: Seq[Int]) extends Module {
 
     override def param_input: Option[Data] = None
 }
+
+object Flatten {
+    def apply()(input_shape: Seq[Int]): Flatten = Module(new Flatten()(input_shape))
+}

@@ -1,6 +1,6 @@
 package chiseltorch.tensor
 
-import chisel3.fromIntToLiteral
+import chisel3.{Data, fromIntToLiteral}
 import chiseltorch.dtypes.DType
 
 class Tensor[T <: DType[T]](val shape: Seq[Int], val data: Seq[T]) {
@@ -46,6 +46,13 @@ class Tensor[T <: DType[T]](val shape: Seq[Int], val data: Seq[T]) {
     // Broadcast
     def :=(that: chisel3.UInt): Unit = {
         data.foreach { d => d := that }
+    }
+
+    def :=(that: Data): Unit = {
+        // that as Vec
+        if (that.isInstanceOf[chisel3.Vec[_]]) {
+            this := that.asInstanceOf[chisel3.Vec[T]]
+        }
     }
 
     def reshape(new_shape: Seq[Int]): Tensor[T] = {
