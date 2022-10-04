@@ -53,6 +53,11 @@ object Ops {
         Tensor(new_shape, new_data)
     }
 
+    def matmul[T <: DType[T]](a: Tensor[T], b: Tensor[T]): Tensor[T] = {
+        // same as mm
+        mm(a, b)
+    }
+
     // Convolution
     def conv2d[T <: DType[T]](input: Tensor[T], weight: Tensor[T], stride: Int): Tensor[T] = {
         require(input.shape.length == 4, "Input must be 4D")
