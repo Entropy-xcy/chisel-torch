@@ -40,7 +40,7 @@ class Conv2D(in_channels: Int, out_channels: Int, kernel_size: Int, stride: Int)
 
     for (i <- 0 until out_channels) {
         // print progress
-        println(s"Conv2D: $i / $out_channels")
+//        println(s"Conv2D: $i / $out_channels")
         val convone = Module(new Conv2DOne(in_channels, (w, h), kernel_size, stride))
         convone.io.input := input_tensor.toVec
         convone.io.weight := conv1_input_weight(i).toVec

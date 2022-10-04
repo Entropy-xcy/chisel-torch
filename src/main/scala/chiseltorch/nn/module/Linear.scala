@@ -6,9 +6,8 @@ import chisel3.stage.ChiselStage
 import chisel3.util._
 
 class Linear(input_dim: Int, output_dim: Int)(input_shape: Seq[Int]) extends Module {
-
-    require(input_shape.length == 2, "Linear input shape must be 2D")
-    require(input_shape(1) == input_dim, "Linear input dim must be " + input_dim)
+    require(input_shape.length == 2, s"Linear input shape must be 2D, got $input_shape")
+    require(input_shape(1) == input_dim, "Linear input dim must be " + input_dim + " got " + input_shape(1))
     val input_tensor = Tensor.Wire(Tensor.empty(Seq(1, input_dim), () => chiseltorch.dtypes.UInt(8.W)))
     val weight_tensor = Tensor.Wire(Tensor.empty(Seq(input_dim, output_dim), () => chiseltorch.dtypes.UInt(8.W)))
     val output_tensor = Tensor.Wire(Tensor.empty(Seq(1, output_dim), () => chiseltorch.dtypes.UInt(8.W)))

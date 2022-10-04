@@ -34,7 +34,7 @@ class Tensor[T <: DType[T]](val shape: Seq[Int], val data: Seq[T]) {
     }
 
     def :=(that: Tensor[T]): Unit = {
-        assert(shape == that.shape)
+        require(shape == that.shape, s"Assignment shape mismatch, $shape != ${that.shape}")
         data.zip(that.data).foreach { case (d0, d1) => d0 := d1 }
     }
 
