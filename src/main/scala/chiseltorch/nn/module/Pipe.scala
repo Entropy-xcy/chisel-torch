@@ -6,14 +6,13 @@ import chiseltorch.tensor.Tensor
 
 class Pipe()(input_shape: Seq[Int]) extends Module {
     val input_tensor = Tensor.Wire(Tensor.empty(input_shape, () => chiseltorch.dtypes.UInt(8.W)))
-    val output_tensor = Tensor.Reg(Tensor.empty(input_shape, () => chiseltorch.dtypes.UInt(8.W)))
+    input_tensor := 0.U
 
     val io = IO(new Bundle {
         val input = Input(input_tensor.asVecType)
-        val out = Output(output_tensor.asVecType)
+        val out = Output(input_tensor.asVecType)
     })
-    input_tensor := io.input
-    io.out := output_tensor.toVec
+    io.out := RegNext(io.input)
 
     override def input: Data = io.input
 

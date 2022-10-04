@@ -68,4 +68,8 @@ object UInt {
     def apply(width: Width): UInt = {
         new UInt(width)
     }
+
+    def LitVal(lit_val: scala.Float): UInt = {
+        new UInt(Width(32)).Lit(_.data -> lit_val.toInt.U)
+    }
 }

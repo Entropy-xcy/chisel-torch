@@ -1,6 +1,7 @@
 package chiseltorch.nn.module
 
 import chisel3._
+import chisel3.stage.ChiselStage
 import chiseltorch.tensor.{Ops, Tensor}
 
 class ReLU()(input_shape: Seq[Int]) extends Module {
@@ -31,4 +32,22 @@ class ReLU()(input_shape: Seq[Int]) extends Module {
 
 object ReLU {
     def apply()(input_shape: Seq[Int]): ReLU = Module(new ReLU()(input_shape))
+}
+
+class RelUWrapModule extends chisel3.Module {
+    val relu = ReLU()(Seq(4))
+    val io = IO(new Bundle {
+        val input = Input(relu.input.cloneType)
+        val out = Output(relu.output.cloneType)
+    })
+
+    relu.input := io.input
+    io.out := relu.output
+}
+
+object RelUBuild extends App {
+    val t0 = System.nanoTime()
+    (new ChiselStage).emitVerilog(new RelUWrapModule)
+    val t1 = System.nanoTime()
+    println("Elapsed time: " + (t1 - t0) / math.pow(10.0, 9.0) + "s")
 }

@@ -6,51 +6,59 @@ import chisel3.util._
 import chiseltorch.tensor.Tensor
 import firrtl.transforms.DontTouchAnnotation
 
+import scala.:+
 import scala.collection.mutable.ArrayBuffer
 
 class Sequential(layers: Seq[Seq[Int] => Module])(input_shape: Seq[Int]) extends chisel3.Module {
     val input_tensor = Tensor.Wire(Tensor.empty(input_shape, () => chiseltorch.dtypes.UInt(8.W)))
-
-    // Chain the layers
-    val output_tensor = layers.foldLeft(input_tensor) { (input, layer) =>
-        // print created layer information
-        val input_shape = input.shape
-        println(s"Sequential: ${layer(input_shape).getClass.getSimpleName} ${input_shape} -> ${layer(input_shape).out_shape}")
-        val layer_module = layer(input_shape)
-//        layer_module.input := input.toVec
-        val output_tensor = Tensor.Wire(Tensor.empty(layer_module.out_shape, () => chiseltorch.dtypes.UInt(8.W)))
-        output_tensor := layer_module.output
-
-        // Adding Param Inputs to Module
-        layer_module.param_input match {
-            case Some(pi) => {
-                val pi_port = IO(Input(pi.cloneType)).suggestName(s"param_input")
-                println(pi_port)
-                println(pi.toNamed)
-                pi := DontCare
-            }
-            case None => ()
-        }
-
-        output_tensor
-    }
-
     val io = IO(new Bundle {
         val input = Input(input_tensor.asVecType)
-        val out = Output(output_tensor.asVecType)
     })
     input_tensor := io.input
-    io.out := output_tensor.toVec
+
+    // iterate through layers
+    var last_output_tensor = input_tensor
+    var index = 0
+    val module_list = for (layer <- layers) yield {
+        // Print Layer information
+
+        val mod = layer(last_output_tensor.shape)
+        mod.input := last_output_tensor.toVec
+        val output_tensor = Tensor.Wire(Tensor.empty(mod.out_shape, () => chiseltorch.dtypes.UInt(8.W)))
+        output_tensor := mod.output
+        last_output_tensor = output_tensor
+
+        mod.param_input match {
+            case Some(param_input) =>
+                val param_in_port = IO(Input(param_input.cloneType)).suggestName(s"param_in_$index")
+                index += 1
+                param_input := param_in_port
+            case None => ()
+        }
+        mod
+    }
+
+    val output = IO(Output(last_output_tensor.asVecType))
+    output := last_output_tensor.toVec
 }
 
 object SequentialBuild extends App {
     val t0 = System.nanoTime()
     (new ChiselStage).emitVerilog(new Sequential(
         Seq(
-            Linear(10, 10),
+            Pipe(),
+                Conv2D(3, 1, 3, 1),
+                ReLU(),
+            Pipe(),
+                BatchNorm2d(1, 1.0),
+                Flatten(),
+            Pipe(),
+                Linear(30 * 30, 10),
+                ReLU(),
+            Pipe(),
         )
     )
-        (Seq(1, 10))
+        (Seq(1, 3, 32, 32))
     )
     val t1 = System.nanoTime()
     println("Elapsed time: " + (t1 - t0) / math.pow(10.0, 9.0) + "s")
