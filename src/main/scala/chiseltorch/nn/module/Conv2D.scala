@@ -3,6 +3,7 @@ package chiseltorch.nn.module
 import chisel3._
 import chisel3.stage.ChiselStage
 import chisel3.util._
+import chiseltorch.common.ProgressBar
 import chiseltorch.tensor.Tensor
 
 private class Conv2DOne(in_channels: Int, in_size: (Int, Int), kernel_size: Int, stride: Int) extends chisel3.Module {
@@ -38,15 +39,17 @@ class Conv2D(in_channels: Int, out_channels: Int, kernel_size: Int, stride: Int)
 
     val conv1_output = Tensor.Wire(Tensor.empty(Seq(1, out_channels, ow, oh), () => chiseltorch.dtypes.UInt(8.W)))
 
+    val pb = new ProgressBar(out_channels)
     for (i <- 0 until out_channels) {
-        // print progress
-//        println(s"Conv2D: $i / $out_channels")
+        pb.update(i)
+
         val convone = Module(new Conv2DOne(in_channels, (w, h), kernel_size, stride))
         convone.io.input := input_tensor.toVec
         convone.io.weight := conv1_input_weight(i).toVec
 
         conv1_output(0)(i) := convone.io.out
     }
+    pb.finished()
 
     val io = IO(new Bundle {
         val input = Input(input_tensor.asVecType)

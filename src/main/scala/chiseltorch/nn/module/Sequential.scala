@@ -21,8 +21,8 @@ class Sequential(layers: Seq[Seq[Int] => Module])(input_shape: Seq[Int]) extends
     var index = 0
     val module_list = for (layer <- layers) yield {
         // Print Layer information
-
         val mod = layer(last_output_tensor.shape)
+        println(s"${mod.getClass.getSimpleName}: ${last_output_tensor.shape.mkString("x")}")
         mod.input := last_output_tensor.toVec
         val output_tensor = Tensor.Wire(Tensor.empty(mod.out_shape, () => chiseltorch.dtypes.UInt(8.W)))
         output_tensor := mod.output
@@ -47,13 +47,13 @@ object SequentialBuild extends App {
     (new ChiselStage).emitVerilog(new Sequential(
         Seq(
             Pipe(),
-                Conv2D(3, 1, 3, 1),
+                Conv2D(3, 128, 3, 1),
                 ReLU(),
             Pipe(),
-                BatchNorm2d(1, 1.0),
+                BatchNorm2d(128, 1.0),
                 Flatten(),
             Pipe(),
-                Linear(30 * 30, 10),
+                Linear(128 * 30 * 30, 10),
                 ReLU(),
             Pipe(),
         )
