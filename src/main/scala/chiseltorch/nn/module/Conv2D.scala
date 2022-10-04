@@ -73,8 +73,10 @@ class Conv2D(in_channels: Int, out_channels: Int, kernel_size: Int, stride: Int)
 }
 
 object Conv2D {
-    def apply(in_channels: Int, out_channels: Int, kernel_size: Int, stride: Int)(in_size: Seq[Int]): Conv2D = {
-        Module(new Conv2D(in_channels, out_channels, kernel_size, stride)(in_size))
+    def apply(in_channels: Int, out_channels: Int, kernel_size: (Int, Int), stride: Int)(in_size: Seq[Int]): Conv2D = {
+        require(kernel_size._1 == kernel_size._2, "Conv2D kernel size must be square (not implemented yet)")
+        val ksize = kernel_size._1
+        Module(new Conv2D(in_channels, out_channels, ksize, stride)(in_size))
     }
 }
 
