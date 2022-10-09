@@ -2,7 +2,7 @@ package chiseltorch.nn.module
 import chisel3.{Bundle, Data, Input, Output, fromIntToWidth, Module}
 import chiseltorch.tensor.Tensor
 
-class MaxPool2d(kernel_size: Tuple2[Int, Int], stride: Int)(input_shape: Seq[Int]) extends Module {
+class MaxPool2D(kernel_size: Tuple2[Int, Int], stride: Int)(input_shape: Seq[Int]) extends chiseltorch.nn.module.Module {
     // FIXME
     require(input_shape.length == 4, "Maxpool2D input shape must be 4D")
     val num_features = input_shape(1)
@@ -31,7 +31,7 @@ class MaxPool2d(kernel_size: Tuple2[Int, Int], stride: Int)(input_shape: Seq[Int
     override def param_input: Option[Data] = None
 }
 
-object MaxPool2d {
-    def apply(kernel_size: Tuple2[Int, Int], stride: Int)(input_shape: Seq[Int]): MaxPool2d =
-        Module(new MaxPool2d(kernel_size, stride)(input_shape))
+object MaxPool2D {
+    def apply(kernel_size: Tuple2[Int, Int], stride: Int)(input_shape: Seq[Int]): MaxPool2D =
+        Module(new MaxPool2D(kernel_size, stride)(input_shape))
 }

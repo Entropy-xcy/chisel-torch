@@ -25,7 +25,7 @@ private class Conv2DOne(in_channels: Int, in_size: (Int, Int), kernel_size: Int,
     io.out := conv1_output.toVec
 }
 
-class Conv2D(in_channels: Int, out_channels: Int, kernel_size: Int, stride: Int)(in_size: Seq[Int]) extends Module {
+class Conv2D(in_channels: Int, out_channels: Int, kernel_size: Int, stride: Int)(in_size: Seq[Int]) extends chiseltorch.nn.module.Module {
     require(in_size.length == 4, "Conv2D input shape must be 4D")
     require(in_size(0) == 1, "Conv2D input batch size must be 1")
     require(in_size(1) == in_channels, "Conv2D input channel size must be " + in_channels)

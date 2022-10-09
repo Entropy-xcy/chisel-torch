@@ -8,8 +8,9 @@ import firrtl.transforms.DontTouchAnnotation
 
 import scala.:+
 import scala.collection.mutable.ArrayBuffer
+import chiseltorch.nn.module.Pipe
 
-class Sequential(layers: Seq[Seq[Int] => Module])(input_shape: Seq[Int]) extends chisel3.Module {
+class Sequential(layers: Seq[Seq[Int] => chiseltorch.nn.module.Module])(input_shape: Seq[Int]) extends chisel3.Module {
     val input_tensor = Tensor.Wire(Tensor.empty(input_shape, () => chiseltorch.dtypes.UInt(8.W)))
     val io = IO(new Bundle {
         val input = Input(input_tensor.asVecType)
@@ -47,13 +48,24 @@ object SequentialBuild extends App {
     (new ChiselStage).emitVerilog(new Sequential(
         Seq(
             Pipe(),
-                Conv2D(3, 1, (3, 3), 1),
+                Conv2D(3, 64, (11, 11), 4),
+                ReLU(),
+                MaxPool2D((3, 3), 2),
             Pipe(),
-                BatchNorm2d(1, 1.0),
+                Conv2D(64, 192, (5, 5), 2),
+                ReLU(),
+                MaxPool2D((3, 3), 2),
+            Pipe(),
+                Conv2D(192, 384, (3, 3), 1),
                 ReLU(),
             Pipe(),
-                MaxPool2d((3, 3), 3),
-            Pipe()
+                Conv2D(384, 256, (3, 3), 1),
+                ReLU(),
+            Pipe(),
+                Conv2D(256, 256, (3, 3), 1),
+                ReLU(),
+                MaxPool2D((3, 3), 2),
+            Pipe(),
         )
     )
         (Seq(1, 3, 32, 32))

@@ -4,7 +4,7 @@ import chisel3._
 import chisel3.stage.ChiselStage
 import chiseltorch.tensor.{Ops, Tensor}
 
-class ReLU()(input_shape: Seq[Int]) extends Module {
+class ReLU()(input_shape: Seq[Int]) extends chiseltorch.nn.module.Module {
     val input_tensor = Tensor.Wire(Tensor.empty(input_shape, () => chiseltorch.dtypes.UInt(8.W)))
     val output_tensor = Tensor.Wire(Tensor.empty(input_shape, () => chiseltorch.dtypes.UInt(8.W)))
 

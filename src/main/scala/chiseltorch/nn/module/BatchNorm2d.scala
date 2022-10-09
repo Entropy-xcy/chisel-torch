@@ -5,7 +5,7 @@ import chisel3._
 import chisel3.stage.ChiselStage
 import chisel3.util._
 
-class BatchNorm2d(num_features: Int, epsilon: Double)(input_shape: Seq[Int]) extends Module {
+class BatchNorm2d(num_features: Int, epsilon: Double)(input_shape: Seq[Int]) extends chiseltorch.nn.module.Module {
     require(input_shape.length == 4, "BatchNorm2d input shape must be 4D")
     require(input_shape(0) == 1, "BatchNorm2d input batch size must be 1")
     require(input_shape(1) == num_features, "BatchNorm2d input channel size must be " + num_features)

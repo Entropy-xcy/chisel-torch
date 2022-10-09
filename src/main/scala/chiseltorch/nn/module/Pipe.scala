@@ -4,7 +4,7 @@ import chisel3._
 import chisel3.util._
 import chiseltorch.tensor.Tensor
 
-class Pipe()(input_shape: Seq[Int]) extends Module {
+class Pipe()(input_shape: Seq[Int]) extends chiseltorch.nn.module.Module {
     val input_tensor = Tensor.Wire(Tensor.empty(input_shape, () => chiseltorch.dtypes.UInt(8.W)))
     input_tensor := 0.U
 

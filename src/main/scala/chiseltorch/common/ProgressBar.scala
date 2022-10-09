@@ -1,14 +1,14 @@
 package chiseltorch.common
 
 class ProgressBar(max: Int) {
-    def update(progress: Int) {
+    def update(progress: Int): Unit = {
         val percent = (progress.toDouble / max.toDouble) * 100
         val bar = ("=" * (percent / 2).toInt) + ">"
         val spaces = " " * (50 - bar.length)
         print("\r[" + bar + spaces + "] " + percent.toInt + "%")
     }
 
-    def finished() {
+    def finished(): Unit = {
         update(max)
         println()
     }
