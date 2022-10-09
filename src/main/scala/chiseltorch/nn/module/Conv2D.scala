@@ -87,7 +87,7 @@ object Conv2D {
 // Chisel Stage Build This Module
 object Conv2DBuild extends App {
     val t0 = System.nanoTime()
-    (new ChiselStage).emitVerilog(new Conv2D(3, 8, 3, 1)(Seq(1, 3, 32, 32)))
+    (new ChiselStage).emitVerilog(new Conv2D(3, 128, 3, 1)(Seq(1, 3, 32, 32)))
     val t1 = System.nanoTime()
     println("Elapsed time: " + (t1 - t0) / math.pow(10.0, 9.0) + "s")
 }
