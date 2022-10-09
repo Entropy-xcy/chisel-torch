@@ -1,12 +1,14 @@
 package chiseltorch.nn.module
 
 import chisel3._
+import chisel3.experimental.hierarchy.{Definition, Instance, instantiable, public}
 import chisel3.stage.ChiselStage
 import chisel3.util._
 import chiseltorch.common.ProgressBar
 import chiseltorch.tensor.Tensor
 
-private class Conv2DOne(in_channels: Int, in_size: (Int, Int), kernel_size: Int, stride: Int) extends chisel3.Module {
+@instantiable
+class Conv2DOne(in_channels: Int, in_size: (Int, Int), kernel_size: Int, stride: Int) extends chisel3.Module {
     // Print the build parameters
     val out_channels = 1
     val input_tensor = Tensor.Wire(Tensor.empty(Seq(1, in_channels, in_size._1, in_size._2), () => chiseltorch.dtypes.UInt(8.W)))
@@ -14,7 +16,7 @@ private class Conv2DOne(in_channels: Int, in_size: (Int, Int), kernel_size: Int,
     val conv1_result = chiseltorch.tensor.Ops.conv2d(input_tensor, conv1_input_weight, stride = stride)
     val conv1_output = chiseltorch.tensor.Ops.relu(conv1_result)
 
-    val io = IO(new Bundle {
+    @public val io = IO(new Bundle {
         val input = Input(input_tensor.asVecType)
         val weight = Input(conv1_input_weight.asVecType)
         val out = Output(conv1_output.asVecType)
@@ -39,11 +41,13 @@ class Conv2D(in_channels: Int, out_channels: Int, kernel_size: Int, stride: Int)
 
     val conv1_output = Tensor.Wire(Tensor.empty(Seq(1, out_channels, ow, oh), () => chiseltorch.dtypes.UInt(8.W)))
 
+    val convoneref = Definition(new Conv2DOne(in_channels, (w, h), kernel_size, stride))
     val pb = new ProgressBar(out_channels)
     for (i <- 0 until out_channels) {
         pb.update(i)
 
-        val convone = Module(new Conv2DOne(in_channels, (w, h), kernel_size, stride))
+//        val convone = Module(new Conv2DOne(in_channels, (w, h), kernel_size, stride))
+        val convone = Instance(convoneref)
         convone.io.input := input_tensor.toVec
         convone.io.weight := conv1_input_weight(i).toVec
 
