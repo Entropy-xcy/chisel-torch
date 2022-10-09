@@ -48,24 +48,14 @@ object SequentialBuild extends App {
     (new ChiselStage).emitVerilog(new Sequential(
         Seq(
             Pipe(),
-                Conv2D(3, 64, (11, 11), 4),
+                Conv2D(3, 64, (3, 3), 1),
                 ReLU(),
-                MaxPool2D((3, 3), 2),
+                MaxPool2D((3, 3), 1),
             Pipe(),
-                Conv2D(64, 192, (5, 5), 2),
+                Flatten(),
+                Linear(64, 10),
                 ReLU(),
-                MaxPool2D((3, 3), 2),
-            Pipe(),
-                Conv2D(192, 384, (3, 3), 1),
-                ReLU(),
-            Pipe(),
-                Conv2D(384, 256, (3, 3), 1),
-                ReLU(),
-            Pipe(),
-                Conv2D(256, 256, (3, 3), 1),
-                ReLU(),
-                MaxPool2D((3, 3), 2),
-            Pipe(),
+            Pipe()
         )
     )
         (Seq(1, 3, 32, 32))
