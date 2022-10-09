@@ -1,6 +1,7 @@
 package chiseltorch.tensor
 
 import chisel3.{Data, fromIntToLiteral}
+import chiseltorch.common.NDSeq
 import chiseltorch.dtypes.DType
 
 class Tensor[T <: DType[T]](val shape: Seq[Int], val data: Seq[T]) {
@@ -13,6 +14,17 @@ class Tensor[T <: DType[T]](val shape: Seq[Int], val data: Seq[T]) {
 
     def apply(index: Int*): Tensor[T] = {
         index.foldLeft(this)((t, i) => t(i))
+    }
+
+    def indexDim(dim: Int, sel: Int): Tensor[T] = {
+        // Return a tensor with the given dimension selected
+        val new_shape = shape.updated(dim, 1)
+        val new_data = NDSeq.indexDim(NDSeq(shape, data), dim, sel)
+        new Tensor(new_shape, NDSeq.flatten(new_data))
+    }
+
+    def map[U <: DType[U]](f: T => U): Tensor[U] = {
+        new Tensor(shape, data.map(f))
     }
 
     def +(that: Tensor[T]): Tensor[T] = {
@@ -69,6 +81,10 @@ object Tensor {
     def empty[T <: DType[T]](shape: Seq[Int], dtype_constructor: () => T): Tensor[T] = {
         val data = Seq.fill(shape.product)(dtype_constructor())
         new Tensor(shape, data)
+    }
+
+    def emptyNone[T <: DType[T]](shape: Seq[Int]): Tensor[T] = {
+        new Tensor(shape, Seq.empty)
     }
 
     def zeros[T <: DType[T]](shape: Seq[Int], dtype_constructor: () => T): Tensor[T] = {

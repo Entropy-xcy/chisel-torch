@@ -5,6 +5,7 @@ import chisel3._
 import chisel3.stage.ChiselStage
 import chisel3.util._
 
+
 class Linear(input_dim: Int, output_dim: Int)(input_shape: Seq[Int]) extends chiseltorch.nn.module.Module {
     require(input_shape.length == 2, s"Linear input shape must be 2D, got $input_shape")
     require(input_shape(1) == input_dim, "Linear input dim must be " + input_dim + " got " + input_shape(1))
