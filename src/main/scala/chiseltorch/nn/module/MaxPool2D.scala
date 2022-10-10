@@ -26,7 +26,7 @@ class MaxPool2DOne(kernel_size: Tuple2[Int, Int], stride: Int)(input_shape: Seq[
 }
 
 
-class MaxPool2D(kernel_size: Tuple2[Int, Int], stride: Int)(input_shape: Seq[Int]) extends chiseltorch.nn.module.Module {
+class MaxPool2DNoPad(kernel_size: Tuple2[Int, Int], stride: Int)(input_shape: Seq[Int]) extends chiseltorch.nn.module.Module {
     require(input_shape.length == 4, "Maxpool2D input shape must be 4D")
     val num_features = input_shape(1)
     val w = input_shape(2)
@@ -68,14 +68,56 @@ class MaxPool2D(kernel_size: Tuple2[Int, Int], stride: Int)(input_shape: Seq[Int
 
     override def out_shape: Seq[Int] = output_tensor.shape
 
-    override def param_input: Option[Data] = None
+    override def param_input: Seq[Data] = Seq()
+}
+
+class MaxPool2D(kernel_size: Tuple2[Int, Int], stride: Int, padding: Int)(input_shape: Seq[Int]) extends chiseltorch.nn.module.Module {
+    require(input_shape.length == 4, "Maxpool2D input shape must be 4D")
+    val num_features = input_shape(1)
+    val w = input_shape(2)
+    val h = input_shape(3)
+    require(kernel_size._1 == kernel_size._2, "Maxpool2D only supports square kernels")
+    val input_tensor = Tensor.Wire(Tensor.empty(Seq(1, num_features, w, h), () => chiseltorch.dtypes.UInt(8.W)))
+    val padded_input = chiseltorch.tensor.Ops.zero_padding(input_tensor, padding)
+    val pw = padded_input.shape(2)
+    val ph = padded_input.shape(3)
+
+    val ow = (pw - kernel_size._1) / stride + 1
+    val oh = (ph - kernel_size._1) / stride + 1
+
+    val output_tensor = Tensor.Wire(Tensor.empty(Seq(1, num_features, ow, oh), () => chiseltorch.dtypes.UInt(8.W)))
+
+    val maxpool_nopad = Module(new MaxPool2DNoPad(kernel_size, stride)(Seq(1, num_features, pw, ph)))
+    maxpool_nopad.io.input := padded_input.toVec
+    output_tensor := maxpool_nopad.io.out
+
+    val io = IO(new Bundle {
+        val input = Input(input_tensor.asVecType)
+        val out = Output(output_tensor.asVecType)
+    })
+
+    input_tensor := io.input
+    io.out := output_tensor.toVec
+
+    override def input: Data = io.input
+
+    override def output: Data = io.out
+
+    override def in_shape: Seq[Int] = input_shape
+
+    override def out_shape: Seq[Int] = output_tensor.shape
+
+    override def param_input: Seq[Data] = Seq.empty
 }
 
 object MaxPool2D {
     def apply(kernel_size: Tuple2[Int, Int], stride: Int)(input_shape: Seq[Int]): MaxPool2D =
-        Module(new MaxPool2D(kernel_size, stride)(input_shape))
+        Module(new MaxPool2D(kernel_size, stride, 0)(input_shape))
+
+    def apply(kernel_size: Tuple2[Int, Int], stride: Int, padding: Int)(input_shape: Seq[Int]): MaxPool2D =
+        Module(new MaxPool2D(kernel_size, stride, padding)(input_shape))
 }
 
 object MaxPool2DBuild extends App {
-    (new ChiselStage).emitVerilog(new MaxPool2D((3, 3), 1)(Seq(1, 2, 30, 30)))
+    (new ChiselStage).emitVerilog(new MaxPool2D((3, 3), 1, 0)(Seq(1, 2, 30, 30)))
 }

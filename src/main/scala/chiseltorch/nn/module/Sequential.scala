@@ -10,12 +10,8 @@ import scala.:+
 import scala.collection.mutable.ArrayBuffer
 import chiseltorch.nn.module.Pipe
 
-class Sequential(layers: Seq[Seq[Int] => chiseltorch.nn.module.Module])(input_shape: Seq[Int]) extends chisel3.Module {
+class Sequential(layers: Seq[Seq[Int] => chiseltorch.nn.module.Module])(input_shape: Seq[Int]) extends chiseltorch.nn.module.Module {
     val input_tensor = Tensor.Wire(Tensor.empty(input_shape, () => chiseltorch.dtypes.UInt(8.W)))
-    val io = IO(new Bundle {
-        val input = Input(input_tensor.asVecType)
-    })
-    input_tensor := io.input
 
     // iterate through layers
     var last_output_tensor = input_tensor
@@ -30,32 +26,47 @@ class Sequential(layers: Seq[Seq[Int] => chiseltorch.nn.module.Module])(input_sh
         last_output_tensor = output_tensor
 
         mod.param_input match {
-            case Some(param_input) =>
+            case Seq(param_input) =>
                 val param_in_port = IO(Input(param_input.cloneType)).suggestName(s"param_in_$index")
                 index += 1
                 param_input := param_in_port
-            case None => ()
+            case Seq() => ()
+            case _ => throw new Exception("Only one parameter input is supported")
         }
         mod
     }
 
-    val output = IO(Output(last_output_tensor.asVecType))
-    output := last_output_tensor.toVec
+    val io = IO(new Bundle {
+        val input = Input(input_tensor.asVecType)
+        val output = Output(last_output_tensor.asVecType)
+    })
+    input_tensor := io.input
+    io.output := last_output_tensor.toVec
     println("Finished Elaboration")
+
+    override def input: Data = io.input
+
+    override def output: Data = io.output
+
+    override def in_shape: Seq[Int] = input_tensor.shape
+
+    override def out_shape: Seq[Int] = last_output_tensor.shape
+
+    override def param_input: Seq[Data] = Seq()
 }
 
 object SequentialBuild extends App {
     val t0 = System.nanoTime()
-    (new ChiselStage).emitVerilog(new Sequential(
+    (new ChiselStage).emitChirrtl(new Sequential(
         Seq(
             Pipe(),
-                Conv2D(3, 64, (3, 3), 1),
+                Conv2D(3, 1, (3, 3), 1),
                 ReLU(),
             Pipe(),
                 MaxPool2D((3, 3), 1),
             Pipe(),
                 Flatten(),
-                Linear(50176, 10),
+                Linear(784, 10),
                 ReLU(),
             Pipe()
         )

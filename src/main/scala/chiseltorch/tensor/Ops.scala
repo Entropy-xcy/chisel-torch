@@ -136,6 +136,28 @@ object Ops {
         new_tensor
     }
 
+    def zero_padding[T <: DType[T]](in_tensor: Tensor[T], padding: Int): Tensor[T] = {
+        require(in_tensor.shape.length == 4, "Only 4D inputs for Conv2D are supported")
+        val in_shape = in_tensor.shape
+        val output_data = 0 until in_shape(0) map { i => // i for batch
+            0 until in_shape(1) map { j => // j for channel
+                0 until in_shape(2) + 2 * padding map { l => // l for height
+                    0 until in_shape(3) + 2 * padding map { m => // m for width
+                        if (l < padding || l >= in_shape(2) + padding || m < padding || m >= in_shape(3) + padding) {
+                            in_tensor.data.head.zero
+                        } else {
+                            in_tensor(i, j, l - padding, m - padding).data.head
+                        }
+                    }
+                }
+            }
+        }
+        val out_data_flat = output_data.flatten.flatten.flatten
+        val out_shape = Seq(in_shape(0), in_shape(1), in_shape(2) + 2 * padding, in_shape(3) + 2 * padding)
+
+        Tensor(out_shape, out_data_flat)
+    }
+
     def batch_norm[T <: DType[T]](input: Tensor[T], mean: T, variance: T, epsilon: T): Tensor[T] = {
         val new_data = input.data.map(x => (x - mean) / (variance + epsilon))
         Tensor(input.shape, new_data)

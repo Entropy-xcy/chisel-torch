@@ -6,7 +6,7 @@ import scala.collection.mutable.Seq
 import chisel3._
 import chisel3.util._
 
-import scala.collection.{immutable}
+import scala.collection.{immutable, mutable}
 
 class Flatten()(input_shape: scala.collection.immutable.Seq[Int]) extends chiseltorch.nn.module.Module {
     val input_tensor = Tensor.Wire(Tensor.empty(input_shape, () => chiseltorch.dtypes.UInt(8.W)))
@@ -30,7 +30,7 @@ class Flatten()(input_shape: scala.collection.immutable.Seq[Int]) extends chisel
 
     override def out_shape: immutable.Seq[Int] = output_tensor.shape
 
-    override def param_input: Option[Data] = None
+    override def param_input: immutable.Seq[Data] = immutable.Seq.empty
 }
 
 object Flatten {

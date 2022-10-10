@@ -22,7 +22,7 @@ class Pipe()(input_shape: Seq[Int]) extends chiseltorch.nn.module.Module {
 
     override def out_shape: Seq[Int] = input_shape
 
-    override def param_input: Option[Data] = None
+    override def param_input: Seq[Data] = Seq.empty
 }
 
 object Pipe {

@@ -37,7 +37,7 @@ class BatchNorm2d(num_features: Int, epsilon: Double)(input_shape: Seq[Int]) ext
 
     override def out_shape: Seq[Int] = output_tensor.shape
 
-    override def param_input: Option[Data] = Some(io.param)
+    override def param_input: Seq[Data] = Seq(io.param)
 }
 
 object BatchNorm2d {

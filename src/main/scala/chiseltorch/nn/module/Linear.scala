@@ -36,7 +36,7 @@ class Linear(input_dim: Int, output_dim: Int)(input_shape: Seq[Int]) extends chi
 
     override def out_shape: Seq[Int] = output_tensor.shape
 
-    override def param_input: Option[Data] = Some(io.weight)
+    override def param_input: Seq[Data] = Seq(io.weight)
 }
 
 object Linear {

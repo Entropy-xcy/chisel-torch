@@ -9,5 +9,5 @@ trait Module extends chisel3.Module {
     def output: Data
     def in_shape: immutable.Seq[Int]
     def out_shape: immutable.Seq[Int]
-    def param_input: Option[Data]
+    def param_input: Seq[Data]
 }
