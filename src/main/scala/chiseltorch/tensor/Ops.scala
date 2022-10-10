@@ -1,8 +1,11 @@
 package chiseltorch.tensor
 
 import Chisel.Mux
-import chisel3.fromIntToLiteral
+import chisel3.experimental.hierarchy._
+import chisel3.{VecInit, fromIntToLiteral}
+import chiseltorch.common.ProgressBar
 import chiseltorch.dtypes.DType
+import chiseltorch.hw.MaxPoolKernel
 
 object Ops {
     def sum[T <: DType[T]](a: Tensor[T]): T = {
@@ -16,7 +19,12 @@ object Ops {
     }
 
     def relu[T <: DType[T]](a: Tensor[T]): Tensor[T] = {
-        val relu_data = a.data.map(x => Mux(x > x.zero, x, x.zero))
+        val pbar = new ProgressBar(a.data.length)
+        val relu_data = a.data.map(x => {
+            pbar.update(1)
+            Mux(x > x.zero, x, x.zero)
+        })
+        pbar.finished()
         Tensor(a.shape, relu_data)
     }
 
@@ -73,7 +81,7 @@ object Ops {
         val new_data = 0 until n map { i => // i for batch
             0 until k map { j => // j for channel
                 0 until oh map { l => // l for height
-                     0 until ow map { m => // m for width
+                    0 until ow map { m => // m for width
                         val to_sum = 0 until c map { p =>
                             0 until kh map { q =>
                                 0 until kw map { r =>
@@ -104,17 +112,20 @@ object Ops {
         val oh = (h - kh) / s + 1
         val ow = (w - kw) / s + 1
 
+        val maxpool_kernel_ref = Definition(new MaxPoolKernel((kh, kw), () => input.data.head.zero))
         val new_data = 0 until n map { i => // i for batch
             0 until c map { j => // j for channel
                 0 until oh map { l => // l for height
-                     0 until ow map { m => // m for width
+                    0 until ow map { m => // m for width
                         val to_max = 0 until kh map { q =>
                             0 until kw map { r =>
                                 input(i, j, l * s + q, m * s + r).data.head
                             }
                         }
+                        val maxpool_kernel_instance = Instance(maxpool_kernel_ref)
                         val max = to_max.flatten
-                        Ops.max(max)
+                        maxpool_kernel_instance.io.in := VecInit(max)
+                        maxpool_kernel_instance.io.out
                     }
                 }
             }

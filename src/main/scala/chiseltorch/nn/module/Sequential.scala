@@ -41,6 +41,7 @@ class Sequential(layers: Seq[Seq[Int] => chiseltorch.nn.module.Module])(input_sh
 
     val output = IO(Output(last_output_tensor.asVecType))
     output := last_output_tensor.toVec
+    println("Finished Elaboration")
 }
 
 object SequentialBuild extends App {
@@ -50,10 +51,11 @@ object SequentialBuild extends App {
             Pipe(),
                 Conv2D(3, 64, (3, 3), 1),
                 ReLU(),
+            Pipe(),
                 MaxPool2D((3, 3), 1),
             Pipe(),
                 Flatten(),
-                Linear(64, 10),
+                Linear(50176, 10),
                 ReLU(),
             Pipe()
         )

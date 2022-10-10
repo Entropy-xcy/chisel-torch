@@ -4,6 +4,7 @@ import chiseltorch.tensor.Tensor
 import chisel3._
 import chisel3.stage.ChiselStage
 import chisel3.util._
+import chiseltorch.hw.MatrixMultiplication
 
 
 class Linear(input_dim: Int, output_dim: Int)(input_shape: Seq[Int]) extends chiseltorch.nn.module.Module {
@@ -12,7 +13,10 @@ class Linear(input_dim: Int, output_dim: Int)(input_shape: Seq[Int]) extends chi
     val input_tensor = Tensor.Wire(Tensor.empty(Seq(1, input_dim), () => chiseltorch.dtypes.UInt(8.W)))
     val weight_tensor = Tensor.Wire(Tensor.empty(Seq(input_dim, output_dim), () => chiseltorch.dtypes.UInt(8.W)))
     val output_tensor = Tensor.Wire(Tensor.empty(Seq(1, output_dim), () => chiseltorch.dtypes.UInt(8.W)))
-    output_tensor := chiseltorch.tensor.Ops.mm(input_tensor, weight_tensor)
+    val matmul_module = Module(new MatrixMultiplication(input_tensor.shape, weight_tensor.shape, () => chiseltorch.dtypes.UInt(8.W)))
+    matmul_module.io.a := input_tensor.toVec
+    matmul_module.io.b := weight_tensor.toVec
+    output_tensor := matmul_module.io.c
 
     val io = IO(new Bundle {
         val input = Input(input_tensor.asVecType)
