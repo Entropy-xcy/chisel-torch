@@ -1,0 +1,3 @@
+-Xmx64G
+-XX:+UnlockExperimentalVMOptions 
+-XX:+UseZGC
