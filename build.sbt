@@ -25,3 +25,9 @@ lazy val root = (project in file("."))
         ),
         addCompilerPlugin("edu.berkeley.cs" % "chisel3-plugin" % chiselVersion cross CrossVersion.full),
     )
+
+libraryDependencies ++= {
+    val liftVersion = "3.5.0" // Put the current/latest lift version here
+    Seq(
+        "net.liftweb" %% "lift-json" % liftVersion % "compile->default")
+}

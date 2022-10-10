@@ -162,4 +162,60 @@ object Ops {
         val new_data = input.data.map(x => (x - mean) / (variance + epsilon))
         Tensor(input.shape, new_data)
     }
+
+//    def concatTwo[T <: DType[T]](input_a: Tensor[T], input_b: Tensor[T], dim: Int): Tensor[T] = {
+//        require(dim == 1, "Only concat along the channel dim is supported")
+//        require(input_a.shape.length == 4, "Only 4D inputs for Conv2D are supported")
+//        require(input_b.shape.length == 4, "Only 4D inputs for Conv2D are supported")
+//        require(input_a.shape(0) == input_b.shape(0), "Batch size must be the same")
+//        require(input_a.shape(2) == input_b.shape(2), "Height must be the same")
+//        require(input_a.shape(3) == input_b.shape(3), "Width must be the same")
+//
+//        val new_data = for (i <- 0 until input_a.shape(0)) yield {
+//            for (j <- 0 until input_a.shape(1) + input_b.shape(1)) yield {
+//                for (l <- 0 until input_a.shape(2)) yield {
+//                    for (m <- 0 until input_a.shape(3)) yield {
+//                        if (j < input_a.shape(1)) {
+//                            input_a(i, j, l, m).data.head
+//                        } else {
+//                            input_b(i, j - input_a.shape(1), l, m).data.head
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//        val new_data_flat = new_data.flatten.flatten.flatten
+//        val new_shape = Seq(input_a.shape(0), input_a.shape(1) + input_b.shape(1), input_a.shape(2), input_a.shape(3))
+//
+//        Tensor(new_shape, new_data)
+//    }
+
+    def concat[T <: DType[T]](inputs: Seq[Tensor[T]], dim: Int): Tensor[T] = {
+        require(dim == 1, "Only concat along the channel dim is supported")
+        require(inputs.length > 1, "At least two inputs are required")
+        require(inputs.forall(_.shape.length == 4), "Only 4D inputs for Conv2D are supported")
+        require(inputs.forall(_.shape(0) == inputs(0).shape(0)), "Batch size must be the same")
+        require(inputs.forall(_.shape(2) == inputs(0).shape(2)), "Height must be the same")
+        require(inputs.forall(_.shape(3) == inputs(0).shape(3)), "Width must be the same")
+
+        val new_data = for (i <- 0 until inputs(0).shape(0)) yield {
+            for (j <- 0 until inputs.map(_.shape(1)).sum) yield {
+                for (l <- 0 until inputs(0).shape(2)) yield {
+                    for (m <- 0 until inputs(0).shape(3)) yield {
+                        var sum = 0
+                        var k = 0
+                        while (sum <= j) {
+                            sum += inputs(k).shape(1)
+                            k += 1
+                        }
+                        inputs(k - 1)(i, j - sum + inputs(k - 1).shape(1), l, m).data.head
+                    }
+                }
+            }
+        }
+        val new_data_flat = new_data.flatten.flatten.flatten
+        val new_shape = Seq(inputs(0).shape(0), inputs.map(_.shape(1)).sum, inputs(0).shape(2), inputs(0).shape(3))
+
+        Tensor(new_shape, new_data_flat)
+    }
 }

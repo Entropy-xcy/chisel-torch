@@ -16,6 +16,7 @@ class Sequential(layers: Seq[Seq[Int] => chiseltorch.nn.module.Module])(input_sh
     // iterate through layers
     var last_output_tensor = input_tensor
     var index = 0
+    val param_ports = ArrayBuffer.empty[chisel3.Data]
     val module_list = for (layer <- layers) yield {
         // Print Layer information
         val mod = layer(last_output_tensor.shape)
@@ -30,8 +31,9 @@ class Sequential(layers: Seq[Seq[Int] => chiseltorch.nn.module.Module])(input_sh
                 val param_in_port = IO(Input(param_input.cloneType)).suggestName(s"param_in_$index")
                 index += 1
                 param_input := param_in_port
+                param_ports += param_in_port
             case Seq() => ()
-            case _ => throw new Exception("Only one parameter input is supported")
+            case _ => throw new Exception("Only one parameter input is supported currently")
         }
         mod
     }
@@ -52,7 +54,7 @@ class Sequential(layers: Seq[Seq[Int] => chiseltorch.nn.module.Module])(input_sh
 
     override def out_shape: Seq[Int] = last_output_tensor.shape
 
-    override def param_input: Seq[Data] = Seq()
+    override def param_input: Seq[Data] = param_ports.toSeq
 }
 
 object SequentialBuild extends App {
