@@ -21,6 +21,9 @@ case class IntGraph(nodes: Map[Int, IntGraphNode]) {
         }))
     }
 
+
+    def apply(id: Int): IntGraphNode = nodes(id)
+
     override def toString: String = {
         nodes.map(node => {
             val from_ids = node._2.predecessors.map(_.id)

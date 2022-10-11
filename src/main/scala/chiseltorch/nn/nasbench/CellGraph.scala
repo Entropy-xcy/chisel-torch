@@ -32,35 +32,37 @@ object CellGraph {
         (graph_x, op_map)
     }
 
-//    def computeNumChannels(graph: CellGraph, num_channels: Int): Map[CellGraphNode, Int] = {
-//        var channel_map = Map.empty[CellGraphNode, Int]
-//        val output_node = graph.nodes.find(_.op == "output").get
-//        channel_map = channel_map + (output_node -> num_channels)
-//
-//        val output_predecessors = output_node.predecessors.filter(_.op != "input")
-//        val output_predecessor_channels: Int = num_channels / output_predecessors.length
-//        output_predecessors.foreach(node => {
-//            channel_map = channel_map + (node -> output_predecessor_channels)
-//        })
-//
-//        // DFS traceback
-//        def traceback(n: CellGraphNode): Unit = {
-//            n.predecessors.foreach(p => channel_map = channel_map + (p -> channel_map(n)))
-//            n.predecessors.foreach(traceback)
-//        }
-//        output_predecessors.foreach(traceback)
-//
-//        val input_node = graph.nodes.find(_.op == "input").get
-//        channel_map = channel_map + (input_node -> num_channels)
-//
-//        channel_map
-//    }
+    def computeNumChannels(graph: IntGraph, ops_map: Map[Int, String], num_channels: Int): Map[Int, Int] = {
+        // find index of output in ops_map
+        val output_index = ops_map.find(_._2 == "output").get._1
+        val input_index = ops_map.find(_._2 == "input").get._1
+
+        var channel_map = Map.empty[Int, Int]
+        channel_map += (output_index -> num_channels)
+
+        // find all nodes that are predecessors of output
+        val output_predecessors = graph(output_index).predecessors.filter(_.id != input_index)
+        val output_predecessors_channels = num_channels / output_predecessors.length
+        output_predecessors.foreach(node => channel_map += (node.id -> output_predecessors_channels))
+
+        def backtrace(node: IntGraphNode): Unit = {
+            val predecessors = node.predecessors.filter(_.id != input_index)
+            predecessors.foreach(p => channel_map += (p.id -> channel_map(node.id)))
+            predecessors.foreach(backtrace)
+        }
+        output_predecessors.foreach(backtrace)
+        channel_map += (input_index -> num_channels)
+        channel_map
+    }
 }
 
 object CellGraphTest extends App {
     val json = Source.fromFile("1.json")
     val jsonp = net.liftweb.json.parse(json.mkString)
     val (g, op_map) = CellGraph.fromJSON(jsonp)
+    val channel_map = CellGraph.computeNumChannels(g, op_map, 32)
 
     println(g)
+    println(op_map)
+    println(channel_map)
 }
