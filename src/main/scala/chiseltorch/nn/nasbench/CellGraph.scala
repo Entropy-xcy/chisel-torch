@@ -7,7 +7,9 @@ case class CellGraphNode(
                             val op: String,
                             val predecessors: Seq[CellGraphNode],
                             val successors: Seq[CellGraphNode],
-                        )
+                        ) {
+    override def toString: String = op
+}
 
 case class CellGraph(val nodes: Seq[CellGraphNode]) {
     def add_node(node: CellGraphNode): CellGraph = {
@@ -22,6 +24,16 @@ case class CellGraph(val nodes: Seq[CellGraphNode]) {
                 CellGraphNode(node.op, node.predecessors :+ from, node.successors)
             } else {
                 node
+            }
+        }))
+    }
+
+    def setNumChannel(node: CellGraphNode, num_channels: Int): CellGraph = {
+        CellGraph(nodes.map(n => {
+            if (n == node) {
+                CellGraphNode(n.op, n.predecessors, n.successors)
+            } else {
+                n
             }
         }))
     }
@@ -86,10 +98,36 @@ object CellGraph {
 
         graph_with_edges
     }
+
+    def computeNumChannels(graph: CellGraph, num_channels: Int): Map[CellGraphNode, Int] = {
+        var channel_map = Map.empty[CellGraphNode, Int]
+        val output_node = graph.nodes.find(_.op == "output").get
+        channel_map = channel_map + (output_node -> num_channels)
+
+        val output_predecessors = output_node.predecessors.filter(_.op != "input")
+        val output_predecessor_channels: Int = num_channels / output_predecessors.length
+        output_predecessors.foreach(node => {
+            channel_map = channel_map + (node -> output_predecessor_channels)
+        })
+
+        // DFS traceback
+        def traceback(n: CellGraphNode): Unit = {
+            n.predecessors.foreach(p => channel_map = channel_map + (p -> channel_map(n)))
+            n.predecessors.foreach(traceback)
+        }
+        output_predecessors.foreach(traceback)
+
+        val input_node = graph.nodes.find(_.op == "input").get
+        channel_map = channel_map + (input_node -> num_channels)
+
+        channel_map
+    }
 }
 
 object CellGraphTest extends App {
     val json = Source.fromFile("1.json")
     val g = CellGraph.fromJSON(json.mkString)
+    val channel_map = CellGraph.computeNumChannels(g, 128)
     println(g)
+    println(channel_map)
 }
