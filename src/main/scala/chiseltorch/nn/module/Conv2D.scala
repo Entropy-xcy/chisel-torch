@@ -80,7 +80,7 @@ class Conv2DNoPad(in_channels: Int, out_channels: Int, kernel_size: Int, stride:
 class Conv2D(in_channels: Int, out_channels: Int, kernel_size: Int, stride: Int, padding: Int)(in_size: Seq[Int]) extends chiseltorch.nn.module.Module {
     require(in_size.length == 4, "Conv2D input shape must be 4D")
     require(in_size(0) == 1, "Conv2D input batch size must be 1")
-    require(in_size(1) == in_channels, "Conv2D input channel size must be " + in_channels)
+    require(in_size(1) == in_channels, "Conv2D input channel size must be " + in_channels + ", got " + in_size(1))
     val w = in_size(2)
     val h = in_size(3)
     val input_tensor = Tensor.Wire(Tensor.empty(Seq(1, in_channels, w, h), () => chiseltorch.dtypes.UInt(8.W)))

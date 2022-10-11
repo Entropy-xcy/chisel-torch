@@ -3,6 +3,7 @@ package chiseltorch.nn.nasbench
 import chisel3._
 import chisel3.stage.ChiselStage
 import chiseltorch.nn.module._
+import chiseltorch.tensor.Tensor
 
 object ConvBnRelu {
     def apply(channels: Int, kernel_size: Int)(shape: Seq[Int]) = new Sequential(
@@ -44,7 +45,7 @@ object ConvBnRelu1x1 {
     }
 }
 
-object Maxpool3x3 {
+object MaxPool3x3 {
     def apply()(shape: Seq[Int]) = {
         val mod = new Sequential(
             Seq(
@@ -58,18 +59,17 @@ object Maxpool3x3 {
 }
 
 object Projection {
-    def apply(from_channels: Int, to_channels: Int)(shape: Seq[Int]) = {
-        val mod = new Sequential(
+    def apply[T <: chiseltorch.dtypes.DType[T]](from_channels: Int, to_channels: Int, in_tensor: Tensor[T]) = {
+        val mod = Module(new Sequential(
             Seq(
                 Conv2D(from_channels, to_channels, (1, 1), 1, 0),
             )
-        )(shape)
-        println(mod.in_shape)
-        println(mod.out_shape)
-        mod
+        )(in_tensor.shape))
+        mod.input := in_tensor.toVec
+        (mod.output, mod.param_input)
     }
 }
 
 object NASBenchCellElementTestBuild extends App {
-    (new ChiselStage).emitChirrtl(Projection(1, 2)(Seq(1, 1, 32, 32)))
+    (new ChiselStage).emitVerilog(ConvBnRelu1x1(1)(Seq(1, 1, 32, 32)))
 }
