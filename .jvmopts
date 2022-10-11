@@ -1,3 +1,0 @@
--Xmx48G
--XX:+UnlockExperimentalVMOptions
--XX:+UseZGC
