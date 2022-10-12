@@ -6,6 +6,7 @@ import chisel3.util._
 import chiseltorch.nn.module.{Conv2D, ReLU}
 import chiseltorch.tensor.{Ops, Tensor}
 
+import java.io.{File, PrintWriter}
 import scala.collection.parallel.CollectionConverters.ImmutableIterableIsParallelizable
 import scala.io.Source
 
@@ -131,20 +132,26 @@ class Cell(graph: IntGraph, op_map: Map[Int, String], channel_map: Map[Int, Int]
 }
 
 object CellTest extends App {
-    (0 until 100).par.foreach { i =>
+    val base_dir = "cell_out"
+    (0 until 1000).par.foreach { i =>
         println(s"Building Index: $i")
         val json = Source.fromFile(s"nasbench_metrics/$i.json")
         val jsonp = net.liftweb.json.parse(json.mkString)
         val (g, op_map) = CellGraph.fromJSON(jsonp)
         val channel_map = CellGraph.computeNumChannels(g, op_map, 2)
 
+        val log_output = new PrintWriter(new File(s"$base_dir/$i.log"))
         try {
             (new ChiselStage).emitVerilog(new Cell(g, op_map, channel_map)(Seq(1, 2, 32, 32)))
+            log_output.write("Success")
+            log_output.close()
         }
         catch {
             case e: Exception =>
                 println(s"Failed to build index $i")
                 println(e)
+                log_output.write(e.toString)
+                log_output.close()
         }
     }
 }
