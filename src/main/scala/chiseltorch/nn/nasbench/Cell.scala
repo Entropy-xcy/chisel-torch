@@ -6,6 +6,7 @@ import chisel3.util._
 import chiseltorch.nn.module.{Conv2D, ReLU}
 import chiseltorch.tensor.{Ops, Tensor}
 
+import scala.collection.parallel.CollectionConverters.ImmutableIterableIsParallelizable
 import scala.io.Source
 
 class Cell(graph: IntGraph, op_map: Map[Int, String], channel_map: Map[Int, Int])(input_shape: Seq[Int]) extends chiseltorch.nn.module.Module {
@@ -48,6 +49,8 @@ class Cell(graph: IntGraph, op_map: Map[Int, String], channel_map: Map[Int, Int]
     }
 
     val modules: Map[Int, chiseltorch.nn.module.Module] = graph.nodes.values.map(construct_from_node).toMap
+    val input_id = op_map.find(_._2 == "input").get._1
+    val output_id = op_map.find(_._2 == "output").get._1
 
     // Connect Modules Together
     modules.toSeq.foreach(indexWithModule => {
@@ -76,7 +79,11 @@ class Cell(graph: IntGraph, op_map: Map[Int, String], channel_map: Map[Int, Int]
             pred_mod.output
             val pred_mod_out_tensor = Tensor.Wire(Tensor.empty(pred_out_shape, () => chiseltorch.dtypes.UInt(8.W)))
             pred_mod_out_tensor := pred_out
-            pred_mod_out_tensor
+            if (pred.id == input_id && id == output_id) {
+                input_tensor := pred_mod_out_tensor
+                println("Found Input!!!!")
+            }
+            (pred_mod_out_tensor, pred.id)
         })
 
         this_op match {
@@ -84,16 +91,20 @@ class Cell(graph: IntGraph, op_map: Map[Int, String], channel_map: Map[Int, Int]
                 // reduce by concat
                 // FIXME: Add support for input predecessors
                 pred_in_datas.foreach(pred_in_data => {
-                    println("output_in_shape: ", pred_in_data.shape)
+                    val pred_in_d = pred_in_data._1
+                    println("output_in_shape: ", pred_in_d.shape)
                 })
-                val concat_in = Ops.concat(pred_in_datas, 1)
+                val pred_in_ds = pred_in_datas.filter(_._2 != input_id).map(_._1)
+                val input_ds = pred_in_datas.filter(_._2 == input_id).map(_._1)
+                val concat_in = Ops.concat(pred_in_ds, 1)
                 mod.input := concat_in.toVec
                 output_tensor := mod.output
             case "input" =>
                 mod.input := input_tensor.toVec
             case _ =>
                 // reduce by sum
-                val sum_tensor = pred_in_datas.reduce((a, b) => a + b)
+                val pred_in_ds = pred_in_datas.map(_._1)
+                val sum_tensor = pred_in_ds.reduce((a, b) => a + b)
                 mod.input := sum_tensor.toVec
         }
     })
@@ -120,13 +131,20 @@ class Cell(graph: IntGraph, op_map: Map[Int, String], channel_map: Map[Int, Int]
 }
 
 object CellTest extends App {
-    for (i <- 5 until 100){
+    (0 until 100).par.foreach { i =>
         println(s"Building Index: $i")
         val json = Source.fromFile(s"nasbench_metrics/$i.json")
         val jsonp = net.liftweb.json.parse(json.mkString)
         val (g, op_map) = CellGraph.fromJSON(jsonp)
         val channel_map = CellGraph.computeNumChannels(g, op_map, 2)
 
-        (new ChiselStage).emitVerilog(new Cell(g, op_map, channel_map)(Seq(1, 2, 32, 32)))
+        try {
+            (new ChiselStage).emitVerilog(new Cell(g, op_map, channel_map)(Seq(1, 2, 32, 32)))
+        }
+        catch {
+            case e: Exception =>
+                println(s"Failed to build index $i")
+                println(e)
+        }
     }
 }
