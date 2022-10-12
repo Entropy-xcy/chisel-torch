@@ -192,6 +192,8 @@ object Ops {
 
     def concat[T <: DType[T]](inputs: Seq[Tensor[T]], dim: Int): Tensor[T] = {
         require(dim == 1, "Only concat along the channel dim is supported")
+        if (inputs.length == 1)
+          return inputs.head
         require(inputs.length > 1, "At least two inputs are required")
         require(inputs.forall(_.shape.length == 4), "Only 4D inputs for Conv2D are supported")
         require(inputs.forall(_.shape(0) == inputs(0).shape(0)), "Batch size must be the same")

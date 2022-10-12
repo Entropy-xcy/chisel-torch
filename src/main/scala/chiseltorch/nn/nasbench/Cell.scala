@@ -120,10 +120,13 @@ class Cell(graph: IntGraph, op_map: Map[Int, String], channel_map: Map[Int, Int]
 }
 
 object CellTest extends App {
-    val json = Source.fromFile("1.json")
-    val jsonp = net.liftweb.json.parse(json.mkString)
-    val (g, op_map) = CellGraph.fromJSON(jsonp)
-    val channel_map = CellGraph.computeNumChannels(g, op_map, 2)
+    for (i <- 5 until 100){
+        println(s"Building Index: $i")
+        val json = Source.fromFile(s"nasbench_metrics/$i.json")
+        val jsonp = net.liftweb.json.parse(json.mkString)
+        val (g, op_map) = CellGraph.fromJSON(jsonp)
+        val channel_map = CellGraph.computeNumChannels(g, op_map, 2)
 
-    (new ChiselStage).emitVerilog(new Cell(g, op_map, channel_map)(Seq(1, 2, 32, 32)), Array("-ll", "Info"))
+        (new ChiselStage).emitVerilog(new Cell(g, op_map, channel_map)(Seq(1, 2, 32, 32)))
+    }
 }
