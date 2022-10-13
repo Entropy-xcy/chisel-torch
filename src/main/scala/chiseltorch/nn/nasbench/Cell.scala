@@ -90,7 +90,6 @@ class Cell(graph: IntGraph, op_map: Map[Int, String], channel_map: Map[Int, Int]
         this_op match {
             case "output" =>
                 // reduce by concat
-                // FIXME: Add support for input predecessors
                 pred_in_datas.foreach(pred_in_data => {
                     val pred_in_d = pred_in_data._1
                     println("output_in_shape: ", pred_in_d.shape)
@@ -132,17 +131,20 @@ class Cell(graph: IntGraph, op_map: Map[Int, String], channel_map: Map[Int, Int]
 }
 
 object CellTest extends App {
-    val base_dir = "cell_out"
-    (0 until 1000).par.foreach { i =>
+    def test_idx(i: Int): Unit = {
         println(s"Building Index: $i")
         val json = Source.fromFile(s"nasbench_metrics/$i.json")
         val jsonp = net.liftweb.json.parse(json.mkString)
         val (g, op_map) = CellGraph.fromJSON(jsonp)
         val channel_map = CellGraph.computeNumChannels(g, op_map, 2)
+        (new ChiselStage).emitVerilog(new Cell(g, op_map, channel_map)(Seq(1, 2, 32, 32)))
+    }
 
+    val base_dir = "cell_out"
+    (0 until 1000).foreach { i =>
         val log_output = new PrintWriter(new File(s"$base_dir/$i.log"))
         try {
-            (new ChiselStage).emitVerilog(new Cell(g, op_map, channel_map)(Seq(1, 2, 32, 32)))
+            test_idx(i)
             log_output.write("Success")
             log_output.close()
         }
