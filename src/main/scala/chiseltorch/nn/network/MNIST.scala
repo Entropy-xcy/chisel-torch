@@ -7,14 +7,10 @@ object MNISTBuild extends App {
     val t0 = System.nanoTime()
     (new ChiselStage).emitVerilog(new Sequential(
         Seq(
-            Conv2D(1, 32, (3, 3), 1),
+            Conv2D(1, 5, (3, 3), 1),
             ReLU(),
-            MaxPool2D((2, 2), 2),
             Flatten(),
-            Linear(5408, 100),
-            ReLU(),
-            Linear(100, 10),
-            ReLU(),
+            Linear(3380, 10)
         )
     )
     (Seq(1, 1, 28, 28)), Array("-td", "build", "-o", "MNIST"))
