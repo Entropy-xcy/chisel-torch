@@ -1,0 +1,4 @@
+-Xmx16G 
+-Xss512M
+-XX:+UnlockExperimentalVMOptions -XX:+UseZGC 
+
