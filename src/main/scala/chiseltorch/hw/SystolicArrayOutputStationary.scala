@@ -8,29 +8,20 @@ import chiseltorch.tensor.Tensor
 import chiseltorch.common.ProgressBar
 
 
-class ProcessingElementWS[T <: DType[T]](width: Int, output: () => T) extends chisel3.Module {
+class ProcessingElementOS[T <: DType[T]](width: Int, output: () => T) extends chisel3.Module {
 
     @public 
     val io = IO(new Bundle {
         val input = Input(new T(width.W))
         val weight = Input(new T(width.W))
-        val prev_accu = Input(new T(width.W))
-        val setWeight = Input(chisel3.Bool())
         val reset = Input(chisel3.Bool())
         val output = Output(new T(width.W))
     })
     val accumulator = RegInit(0.T(W.W))
-    val weight = RegInit(0.T(W.W))
-
-    when (io.setWeight) {
-        weight := io.weight
-    }
     when (io.reset) {
         accumulator := 0.T
-        weight := 0.T
     }
-
-    accumulator := accumulator + prev_accu + io.input * weight
+    accumulator := accumulator + io.input * weight
     io.output := accumulator
 }
 
