@@ -16,7 +16,7 @@ class Linear(input_dim: Int, output_dim: Int)(input_shape: Seq[Int]) extends chi
     val output_tensor = Tensor.Wire(Tensor.empty(Seq(1, output_dim), () => chiseltorch.dtypes.UInt(8.W)))
     
     //** instantiate systolic array
-    val sysray = Module(new SystolicArrayWeightStationary(input_tensor.shape, weight_tensor.shape, () => chiseltorch.dtypes.UInt(8.W))
+    val sysray = Module(new SystolicArrayWeightStationary(input_tensor.shape, weight_tensor.shape, () => chiseltorch.dtypes.UInt(8.W)))
     sysray.io.input := input_tensor.toVec
     sysray.io.weight := weight_tensor.toVec
     output := sysray.io.output
