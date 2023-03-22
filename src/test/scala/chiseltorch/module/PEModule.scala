@@ -7,27 +7,20 @@ class PEModuleTest extends TestWithBackendSelect with ChiselScalatestTester {
   it should "do PEGenerator" in {
     test(new PEGeneratorWrapper(64, 4, "001")).withAnnotations(simAnnos) { pe =>      
 
-    //   val test_inputs = Array(       val test_weights = Array(
-    //     1, 2, 3, 4,                     9, 8, 7, 6,
-    //     5, 6, 7, 8,                     5, 4, 3, 2,
-    //     8, 7, 6, 5,                     1, 2, 3, 4,
-    //     4, 3, 2, 1                      5, 6, 7, 8
-    //   )                             )
-      val transformed_inputs = Array(
-        0, 0, 0, 4, 3, 2, 1, 
-        0, 0, 8, 7, 6, 5, 0,
-        0, 5, 6, 7, 8, 0, 0,
-        1, 2, 3, 4, 0, 0, 0
+      val test_inputs = Seq(
+        Seq(1, 2, 3, 4),
+        Seq(5, 6, 7, 8),
+        Seq(8, 7, 6, 5),
+        Seq(4, 3, 2, 1)
       )
-      val transformed_weights = Array(
-        0, 0, 0, 0,
-        0, 0, 7, 0,
-        0, 6, 3, 0,
-        5, 2, 3, 8,
-        1, 4, 7, 4,
-        5, 8, 0, 2,
-        9, 0, 0, 6
+
+      val test_weights = Seq(
+        Seq(9, 8, 7, 6),
+        Seq(5, 4, 3, 2),
+        Seq(1, 2, 3, 4),
+        Seq(5, 6, 7, 8)
       )
+
       val golden_outputs = Array(
         42,      46,	 50,	 54,
         122,	126,    130,	134,
@@ -37,8 +30,8 @@ class PEModuleTest extends TestWithBackendSelect with ChiselScalatestTester {
 
       val timeout = 1000
       for (i <- 0 until 28) {
-        pe.io.inputs.bits(i).poke(transformed_inputs(i))
-        pe.io.weights.bits(i).poke(transformed_inputs(i))
+        pe.io.inputs.bits(i).poke(test_inputs(i))
+        pe.io.weights.bits(i).poke(test_weights(i))
         pe.io.start.poke(1)
       }
 
