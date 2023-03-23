@@ -3,7 +3,7 @@ package chiseltorch.nn.nasbench
 import chisel3._
 import chisel3.stage.ChiselStage
 import chisel3.util._
-import chiseltorch.nn.module.{Conv2D, ReLU}
+import chiseltorch.nn.module.{Act, Attention, Conv2D}
 import chiseltorch.tensor.{Ops, Tensor}
 
 import java.io.{File, PrintWriter}

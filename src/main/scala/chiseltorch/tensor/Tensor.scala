@@ -32,6 +32,16 @@ class Tensor[T <: DType[T]](val shape: Seq[Int], val data: Seq[T]) {
         new Tensor(shape, new_data)
     }
 
+    def *(that: Tensor[T]): Tensor[T] = {
+        val new_data = data.zip(that.data).map { case (d0, d1) => d0 * d1 }
+        new Tensor(shape, new_data)
+    }
+
+    def sum(): Tensor[T] = {
+        val new_data = Seq(data.reduce((x, y) => x + y))
+        new Tensor(Seq(), new_data)
+    }
+
     def toVec: chisel3.Vec[T] = {
         chisel3.VecInit(data)
     }

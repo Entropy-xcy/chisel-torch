@@ -2,10 +2,11 @@ package chiseltorch.tensor
 
 import Chisel.Mux
 import chisel3.experimental.hierarchy._
-import chisel3.{VecInit, fromIntToLiteral}
+import chisel3.{Module, VecInit, fromIntToLiteral}
 import chiseltorch.common.ProgressBar
 import chiseltorch.dtypes.DType
 import chiseltorch.hw.MaxPoolKernel
+import chiseltorch.nn.module.{ActLUT, SampleFunctions}
 
 object Ops {
     def sum[T <: DType[T]](a: Tensor[T]): T = {
@@ -26,6 +27,25 @@ object Ops {
         })
         pbar.finished()
         Tensor(a.shape, relu_data)
+    }
+
+    def tanh[T <: DType[T]](a: Tensor[T]): Tensor[T] = {
+        val tanh_data = a.data.map(x => {
+            val act_lut = Module(new ActLUT(8, SampleFunctions.tanh))
+            act_lut.io.input := x
+            act_lut.io.output.asInstanceOf[T]
+        })
+        Tensor(a.shape, tanh_data)
+    }
+
+
+    def exp[T <: DType[T]](a: Tensor[T]): Tensor[T] = {
+        val tanh_data = a.data.map(x => {
+            val act_lut = Module(new ActLUT(8, SampleFunctions.exp))
+            act_lut.io.input := x
+            act_lut.io.output.asInstanceOf[T]
+        })
+        Tensor(a.shape, tanh_data)
     }
 
     def max[T <: DType[T]](a: Tensor[T]): T = {
@@ -220,4 +240,5 @@ object Ops {
 
         Tensor(new_shape, new_data_flat)
     }
+
 }

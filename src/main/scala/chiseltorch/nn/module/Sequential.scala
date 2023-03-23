@@ -62,14 +62,14 @@ object SequentialBuild extends App {
     (new ChiselStage).emitChirrtl(new Sequential(
         Seq(
             Pipe(),
-                Conv2D(3, 1, (3, 3), 1),
-                ReLU(),
+            Conv2D(3, 1, (3, 3), 1),
+            ReLU(),
             Pipe(),
                 MaxPool2D((3, 3), 1),
             Pipe(),
                 Flatten(),
                 Linear(784, 10),
-                ReLU(),
+            ReLU(),
             Pipe()
         )
     )

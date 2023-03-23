@@ -1,7 +1,7 @@
 package chiseltorch.nn.network
 
 import chisel3.stage.ChiselStage
-import chiseltorch.nn.module.{Conv2D, Flatten, Linear, MaxPool2D, Pipe, ReLU, Sequential}
+import chiseltorch.nn.module.{Act, Attention, Conv2D, Flatten, Linear, MaxPool2D, Pipe, ReLU, Sequential}
 
 object MNISTBuild extends App {
     val t0 = System.nanoTime()
